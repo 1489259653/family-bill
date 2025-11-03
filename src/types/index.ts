@@ -4,6 +4,7 @@ export interface Transaction {
   category: string;
   amount: number;
   description: string;
+  payer: string;
   date: string;
   timestamp: string;
 }
@@ -13,6 +14,7 @@ export interface TransactionFormData {
   category: string;
   amount: number;
   description: string;
+  payer: string;
   date: string;
 }
 
@@ -25,6 +27,7 @@ export interface SummaryData {
 export interface FilterOptions {
   type: 'all' | 'income' | 'expense';
   category: string;
+  payer: string;
   date: string;
 }
 

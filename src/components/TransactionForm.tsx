@@ -19,6 +19,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onAddTransaction }) =
       category: values.category,
       amount: values.amount,
       description: values.description,
+      payer: values.payer || '',
       date: values.date.format('YYYY-MM-DD')
     };
     
@@ -91,6 +92,13 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onAddTransaction }) =
             <DatePicker style={{ width: '100%' }} />
           </Form.Item>
         </div>
+
+        <Form.Item
+          name="payer"
+          label="支付人"
+        >
+          <Input placeholder="请输入支付人姓名" />
+        </Form.Item>
 
         <Form.Item
           name="description"

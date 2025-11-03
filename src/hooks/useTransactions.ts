@@ -7,6 +7,7 @@ export const useTransactions = () => {
   const [filters, setFilters] = useState<FilterOptions>({
     type: 'all',
     category: 'all',
+    payer: 'all',
     date: ''
   });
 
@@ -40,6 +41,7 @@ export const useTransactions = () => {
     setFilters({
       type: 'all',
       category: 'all',
+      payer: 'all',
       date: ''
     });
   }, []);
@@ -49,6 +51,9 @@ export const useTransactions = () => {
       return false;
     }
     if (filters.category !== 'all' && transaction.category !== filters.category) {
+      return false;
+    }
+    if (filters.payer !== 'all' && transaction.payer !== filters.payer) {
       return false;
     }
     if (filters.date && transaction.date !== filters.date) {

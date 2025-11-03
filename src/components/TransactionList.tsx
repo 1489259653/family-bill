@@ -66,6 +66,20 @@ const TransactionList: React.FC<TransactionListProps> = ({
             ))}
           </Select>
 
+          <Select
+            value={filters.payer}
+            onChange={value => onUpdateFilters({ payer: value })}
+            style={{ width: 120 }}
+            placeholder="支付人筛选"
+          >
+            <Select.Option value="all">所有支付人</Select.Option>
+            {Array.from(new Set(transactions.map(t => t.payer).filter(payer => payer))).map(payer => (
+              <Select.Option key={payer} value={payer}>
+                {payer}
+              </Select.Option>
+            ))}
+          </Select>
+
           <DatePicker
             value={filters.date ? dayjs(filters.date) : null}
             onChange={date => onUpdateFilters({ date: date ? date.format('YYYY-MM-DD') : '' })}
@@ -100,6 +114,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
                   <Space>
                     <span>{getCategoryLabel(transaction.category)}</span>
                     <span>{dayjs(transaction.date).format('YYYY-MM-DD')}</span>
+                    {transaction.payer && <span>支付人: {transaction.payer}</span>}
                   </Space>
                 }
               />
