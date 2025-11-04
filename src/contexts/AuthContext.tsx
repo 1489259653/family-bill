@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { authAPI } from '../services/api';
+import { useAuth as apiUseAuth } from '../services/api';
 import { User } from '../types';
 
 interface AuthContextType {
@@ -29,6 +29,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const { login: authLogin, register: authRegister } = apiUseAuth();
 
   useEffect(() => {
     // 检查本地存储中是否有用户信息和令牌
@@ -52,7 +53,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await authAPI.login({ email, password });
+      const response = await authLogin({ email, password });
       
       setToken(response.access_token);
       setUser(response.user);
@@ -67,7 +68,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const register = async (username: string, email: string, password: string) => {
     try {
-      const response = await authAPI.register({ username, email, password });
+      const response = await authRegister({ username, email, password });
       
       setToken(response.access_token);
       setUser(response.user);

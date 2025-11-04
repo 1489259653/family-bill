@@ -1,16 +1,29 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, Form, Input, Button, Space, message, Modal, List, Tag, Divider, Typography } from 'antd';
 import { PlusOutlined, UserAddOutlined, HomeOutlined, TeamOutlined, KeyOutlined, CopyOutlined } from '@ant-design/icons';
-import { familiesAPI } from '../services/api';
+import { useFamilies } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 import { User } from '../types';
 
 const { Title, Text } = Typography;
 
 const FamilyManager: React.FC = () => {
-  const [currentFamily, setCurrentFamily] = useState<any>(null);
-  const [familyMembers, setFamilyMembers] = useState<User[]>([]);
-  const [isInFamily, setIsInFamily] = useState(false);
-  const [invitationCode, setInvitationCode] = useState('');
+  const { 
+    currentFamily, 
+    currentFamilyError, 
+    familyMembers, 
+    familyMembersError,
+    invitationCode,
+    invitationCodeError,
+    createFamily,
+    joinFamily,
+    leaveFamily,
+    refreshCurrentFamily,
+    refreshFamilyMembers
+  } = useFamilies();
+  
+  // 判断用户是否已加入家庭
+  const isInFamily = !!currentFamily?.data;
   
   const [createModalVisible, setCreateModalVisible] = useState(false);
   const [joinModalVisible, setJoinModalVisible] = useState(false);
@@ -19,44 +32,30 @@ const FamilyManager: React.FC = () => {
   const [createForm] = Form.useForm();
   const [joinForm] = Form.useForm();
 
-  // 检查用户家庭状态
-  const checkFamilyStatus = async () => {
-    try {
-      const result = await familiesAPI.getCurrent();
-      if (result.success && result.data) {
-        setCurrentFamily(result.data);
-        setIsInFamily(true);
-        
-        // 获取家庭成员
-        const membersResult = await familiesAPI.getMembers();
-        if (membersResult.success) {
-          setFamilyMembers(membersResult.data);
-        }
-      } else {
-        setIsInFamily(false);
-        setCurrentFamily(null);
-        setFamilyMembers([]);
-      }
-    } catch (error) {
-      console.error('获取家庭信息失败:', error);
-      message.error('获取家庭信息失败');
-    }
-  };
+  // 检查是否有错误
+  const { logout } = useAuth();
 
-  useEffect(() => {
-    checkFamilyStatus();
-  }, []);
+  React.useEffect(() => {
+    if (currentFamilyError || familyMembersError) {
+      console.error('获取家庭信息失败:', currentFamilyError || familyMembersError);
+      
+      // 处理401未授权错误
+      if ((currentFamilyError?.statusCode === 401 || familyMembersError?.statusCode === 401)) {
+        message.error('登录已过期，请重新登录');
+        logout();
+      } else {
+        message.error('获取家庭信息失败');
+      }
+    }
+  }, [currentFamilyError, familyMembersError, logout]);
 
   // 创建家庭
   const handleCreateFamily = async (values: any) => {
     try {
-      const result = await familiesAPI.create(values);
-      if (result.success) {
-        message.success('家庭创建成功！');
-        setCreateModalVisible(false);
-        createForm.resetFields();
-        checkFamilyStatus();
-      }
+      const result = await createFamily(values);
+      message.success('家庭创建成功！');
+      setCreateModalVisible(false);
+      createForm.resetFields();
     } catch (error) {
       console.error('创建家庭失败:', error);
       message.error('创建家庭失败，请重试');
@@ -66,13 +65,10 @@ const FamilyManager: React.FC = () => {
   // 加入家庭
   const handleJoinFamily = async (values: any) => {
     try {
-      const result = await familiesAPI.join(values);
-      if (result.success) {
-        message.success('成功加入家庭！');
-        setJoinModalVisible(false);
-        joinForm.resetFields();
-        checkFamilyStatus();
-      }
+      const result = await joinFamily(values);
+      message.success('成功加入家庭！');
+      setJoinModalVisible(false);
+      joinForm.resetFields();
     } catch (error) {
       console.error('加入家庭失败:', error);
       message.error('邀请码无效或已过期，请重试');
@@ -80,24 +76,17 @@ const FamilyManager: React.FC = () => {
   };
 
   // 获取邀请码
-  const handleGetInvitationCode = async () => {
-    try {
-      const result = await familiesAPI.getInvitationCode();
-      if (result.success && result.data) {
-        setInvitationCode(result.data.invitationCode);
-        setInviteModalVisible(true);
-      } else {
-        message.error('只有家庭管理员可以生成邀请码');
-      }
-    } catch (error) {
-      console.error('获取邀请码失败:', error);
-      message.error('获取邀请码失败');
+  const handleGetInvitationCode = () => {
+    if (invitationCode?.error) {
+      message.error('只有家庭管理员可以生成邀请码');
+    } else if (invitationCode?.data?.invitationCode) {
+      setInviteModalVisible(true);
     }
   };
 
   // 复制邀请码
   const handleCopyInvitationCode = () => {
-    navigator.clipboard.writeText(invitationCode);
+    navigator.clipboard.writeText(invitationCode?.data?.invitationCode || '');
     message.success('邀请码已复制到剪贴板');
   };
 
@@ -108,11 +97,8 @@ const FamilyManager: React.FC = () => {
       content: '退出家庭后，您将无法查看家庭账单，确定要退出吗？',
       onOk: async () => {
         try {
-          const result = await familiesAPI.leave();
-          if (result.success) {
-            message.success('已成功退出家庭');
-            checkFamilyStatus();
-          }
+          const result = await leaveFamily();
+          message.success('成功退出家庭');
         } catch (error) {
           console.error('退出家庭失败:', error);
           message.error('退出家庭失败，请重试');
@@ -174,10 +160,10 @@ const FamilyManager: React.FC = () => {
             
             <List
               dataSource={familyMembers}
-              renderItem={(member) => (
+              renderItem={(member:User ) => (
                 <List.Item
                   actions={[
-                    (member as any).isAdmin && (
+                    (member ).isAdmin && (
                       <Tag color="green">管理员</Tag>
                     )
                   ]}

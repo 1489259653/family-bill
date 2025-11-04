@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, Form, Input, Select, Button, DatePicker, InputNumber, message, Checkbox } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { TransactionFormData, User } from '../types';
 import { CATEGORIES } from '../types';
 import dayjs from 'dayjs';
-import { familiesAPI } from '../services/api';
+import { useFamilies } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 
 interface TransactionFormProps {
   onAddTransaction: (data: TransactionFormData) => void;
@@ -13,33 +14,16 @@ interface TransactionFormProps {
 const TransactionForm: React.FC<TransactionFormProps> = ({ onAddTransaction }) => {
   const [form] = Form.useForm();
   const [transactionType, setTransactionType] = useState<'income' | 'expense'>('income');
-  const [isInFamily, setIsInFamily] = useState(false);
-  const [familyMembers, setFamilyMembers] = useState<User[]>([]);
   const [currentUser] = useState(() => {
     const userStr = localStorage.getItem('user');
     return userStr ? JSON.parse(userStr) : null;
   });
+  
+  const { currentFamily, familyMembers } = useFamilies();
+  const { logout } = useAuth();
+  const isInFamily = !!currentFamily?.data;
 
-  useEffect(() => {
-    const checkFamilyStatus = async () => {
-      try {
-        const currentFamily = await familiesAPI.getCurrent();
-        if (currentFamily.success && currentFamily.data) {
-          setIsInFamily(true);
-          const members = await familiesAPI.getMembers();
-          if (members.success) {
-            setFamilyMembers(members.data);
-          }
-        }
-      } catch (error) {
-        console.error('获取家庭信息失败:', error);
-      }
-    };
-    
-    checkFamilyStatus();
-  }, []);
-
-  const handleSubmit = (values: any) => {
+  const handleSubmit = async (values: any) => {
     const formData: TransactionFormData = {
       type: values.type,
       category: values.category,
@@ -50,9 +34,20 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onAddTransaction }) =
       payer: values.isFamilyBill ? values.payerId : values.payer || ''
     };
     
-    onAddTransaction(formData);
-    form.resetFields(['description', 'amount', 'category']);
-    message.success('交易添加成功！');
+    try {
+      await onAddTransaction(formData);
+      form.resetFields(['description', 'amount', 'category']);
+      message.success('交易添加成功！');
+    } catch (error) {
+      // 处理401未授权错误
+      const errorObj = error as any;
+      if (errorObj.statusCode === 401) {
+        message.error('登录已过期，请重新登录');
+        logout();
+      } else {
+        message.error('添加交易失败');
+      }
+    }
   };
 
   const handleTypeChange = (value: 'income' | 'expense') => {
@@ -144,11 +139,11 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onAddTransaction }) =
                   rules={[{ required: true, message: '请选择支付人' }]}
                 >
                   <Select placeholder="请选择支付人" defaultValue={currentUser?.id}>
-                    {familyMembers.map(member => (
+                    {familyMembers.data?.map((member: User) => (
                       <Select.Option key={member.id} value={member.id}>
                         {member.username}
                       </Select.Option>
-                    ))}
+                    )) || []}
                   </Select>
                 </Form.Item>
               );

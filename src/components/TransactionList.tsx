@@ -3,6 +3,7 @@ import { Card, List, Button, Tag, Space, Popconfirm, message, Select } from 'ant
 import { DeleteOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { Transaction } from '../types';
+import { useAuth } from '../contexts/AuthContext';
 
 
 
@@ -21,12 +22,20 @@ const TransactionList: React.FC<TransactionListProps> = ({
   onClearFilters,
   onDeleteTransaction,
 }) => {
+  const { logout } = useAuth();
   const handleDelete = async (id: number) => {
     try {
       await onDeleteTransaction(id);
       message.success('删除成功');
     } catch (error) {
-      message.error('删除失败');
+      // 处理401未授权错误
+      const errorObj = error as any;
+      if (errorObj.statusCode === 401) {
+        message.error('登录已过期，请重新登录');
+        logout();
+      } else {
+        message.error('删除失败');
+      }
     }
   };
 

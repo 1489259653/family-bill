@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -9,6 +10,7 @@ async function bootstrap() {
   app.enableCors({
     origin: 'http://localhost:5173', // Vite默认端口
     credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization'], // 明确允许Authorization头
   });
   
   // 全局验证管道
@@ -18,10 +20,28 @@ async function bootstrap() {
     transform: true,
   }));
   
+  // 配置Swagger文档
+  const config = new DocumentBuilder()
+    .setTitle('家庭记账本 API')
+    .setDescription('家庭记账本后端服务API文档')
+    .setVersion('1.0.0')
+    .addBearerAuth({
+      type: 'http',
+      scheme: 'bearer',
+      bearerFormat: 'JWT',
+      in: 'header',
+      name: 'Authorization',
+    }, 'access_token')
+    .build();
+  
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api', app, document);
+  
   const port = process.env.PORT || 3001;
   await app.listen(port);
   
   console.log(`🚀 后端服务已启动: http://localhost:${port}`);
+  console.log(`📚 Swagger文档地址: http://localhost:${port}/api`);
 }
 
 bootstrap();
