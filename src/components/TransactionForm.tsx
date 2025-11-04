@@ -6,6 +6,7 @@ import { CATEGORIES } from '../types';
 import dayjs from 'dayjs';
 import { useFamilies } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import TextArea from 'antd/es/input/TextArea';
 
 interface TransactionFormProps {
   onAddTransaction: (data: TransactionFormData) => void;
@@ -148,14 +149,6 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onAddTransaction }) =
                 </Form.Item>
               );
             }
-            return (
-              <Form.Item
-                name="payer"
-                label="支付人"
-              >
-                <Input placeholder="请输入支付人姓名" />
-              </Form.Item>
-            );
           }}
         </Form.Item>
 
@@ -164,7 +157,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onAddTransaction }) =
           label="描述"
           rules={[{ required: true, message: '请输入交易描述' }]}
         >
-          <Input placeholder="交易说明" />
+          <TextArea placeholder="交易说明" />
         </Form.Item>
 
         <Form.Item>

@@ -2,13 +2,29 @@ import useSWR from 'swr';
 import { fetcher, CreateFamilyData, JoinFamilyData } from '../services/api';
 import { FamilyMembersResponse, FamilyMember } from '../types';
 
+// 邀请码返回数据类型
+export interface InvitationCodeResponse {
+  success: boolean;
+  data: {
+    invitationCode: string;
+  };
+}
+export interface ErrorResponse {
+  success: boolean;
+  statusCode: number;
+  message: string;
+  data: {
+    invitationCode: string;
+  };
+}
+
 // Families相关hooks
 export const useFamilies = (): {
   currentFamily: any;
-  currentFamilyError: Error | undefined;
+  currentFamilyError: ErrorResponse | undefined;
   familyMembers: FamilyMember[];
-  familyMembersError: Error | undefined;
-  invitationCode: any;
+  familyMembersError: ErrorResponse | undefined;
+  invitationCode: string | undefined;
   invitationCodeError: Error | undefined;
   createFamily: (data: CreateFamilyData) => Promise<any>;
   joinFamily: (data: JoinFamilyData) => Promise<any>;
@@ -27,8 +43,13 @@ export const useFamilies = (): {
   // 提取成员数组数据
   const familyMembers = familyMembersResponse?.data || [];
   // 获取邀请码
-  const { data: invitationCode, error: invitationCodeError } = 
-    useSWR('/families/invitation-code', fetcher<any>);
+  // 返回：
+  // {"success":true,"data":{"invitationCode":"CEE5AE4594F8"}}
+  const { data: invitationCodeResponse, error: invitationCodeError } = 
+    useSWR<InvitationCodeResponse>('/families/invitation-code', fetcher);
+  
+  // 提取直接的邀请码字符串
+  const invitationCode = invitationCodeResponse?.data?.invitationCode;
 
   // 创建家庭
   const createFamily = async (data: CreateFamilyData) => {

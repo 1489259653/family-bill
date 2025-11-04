@@ -3,7 +3,7 @@ import { Card, Form, Input, Button, Space, message, Modal, List, Tag, Divider, T
 import { PlusOutlined, UserAddOutlined, HomeOutlined, TeamOutlined, KeyOutlined, CopyOutlined } from '@ant-design/icons';
 import { useFamilies } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
-import { User } from '../types';
+import { FamilyMember, User } from '../types';
 
 const { Title, Text } = Typography;
 
@@ -76,16 +76,18 @@ const FamilyManager: React.FC = () => {
 
   // 获取邀请码
   const handleGetInvitationCode = () => {
-    if (invitationCode?.error) {
-      message.error('只有家庭管理员可以生成邀请码');
-    } else if (invitationCode?.invitationCode) {
-      setInviteModalVisible(true);
+    if (invitationCodeError) {
+        return message.error('获取邀请码出错');
+      }
+      console.log(invitationCode)
+      if (invitationCode) {
+        setInviteModalVisible(true);
     }
   };
 
   // 复制邀请码
   const handleCopyInvitationCode = () => {
-    navigator.clipboard.writeText(invitationCode?.invitationCode || '');
+    navigator.clipboard.writeText(invitationCode || '');
     message.success('邀请码已复制到剪贴板');
   };
 
@@ -157,12 +159,12 @@ const FamilyManager: React.FC = () => {
               <span style={{ fontSize: '16px', fontWeight: 'bold' }}>家庭成员 ({familyMembers.length}人)</span>
             </Space>
             
-            <List
+            <List 
               dataSource={familyMembers}
-              renderItem={(member:User ) => (
+              renderItem={(member:FamilyMember) => (
                 <List.Item
                   actions={[
-                    (member ).isAdmin && (
+                    (member.isAdmin) && (
                       <Tag color="green">管理员</Tag>
                     )
                   ]}
