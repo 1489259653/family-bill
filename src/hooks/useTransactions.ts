@@ -72,9 +72,6 @@ export const useTransactions = (billType?: 'all' | 'personal' | 'family') => {
   const updateTransaction = async (id: number, data: Partial<CreateTransactionData>) => {
     // Format date if it's included in the update data
     const formattedData = { ...data };
-    if (formattedData.date instanceof Date) {
-      formattedData.date = formattedData.date.toISOString().split('T')[0]; // Format: YYYY-MM-DD
-    }
     
     const result = await fetcher(`/transactions/${id}`, 'PATCH', formattedData);
     mutateTransactions(); // 重新获取交易列表

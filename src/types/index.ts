@@ -14,7 +14,6 @@ export interface Family {
 }
 
 export interface Transaction {
-  title: string;
   id: string | number;
   type: 'income' | 'expense';
   category: string;

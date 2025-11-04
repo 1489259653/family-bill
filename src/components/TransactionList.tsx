@@ -1,11 +1,10 @@
 import React from 'react';
-import { Card, List, Button, Tag, Space, Popconfirm, message, Select } from 'antd';
+import { Card, Table, Button, Tag, Space, Popconfirm, message, Select } from 'antd';
 import { DeleteOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { Transaction } from '../types';
 import { useAuth } from '../contexts/AuthContext';
-
-
+import { ColumnType } from 'antd/es/table';
 
 interface TransactionListProps {
   transactions: Transaction[];
@@ -39,6 +38,81 @@ const TransactionList: React.FC<TransactionListProps> = ({
     }
   };
 
+  // 定义表格列配置
+  const columns: ColumnType<Transaction>[] = [
+    {
+      title: '类型',
+      dataIndex: 'type',
+      key: 'type',
+      width: 100,
+      render: (type: string) => (
+        <Tag color={type === 'income' ? 'green' : 'red'}>
+          {type === 'income' ? '收入' : '支出'}
+        </Tag>
+      ),
+    },
+    {
+      title: '金额',
+      dataIndex: 'amount',
+      key: 'amount',
+      width: 120,
+      render: (amount: string | number) => `¥${amount}`,
+    },
+    {
+      title: '分类',
+      dataIndex: 'category',
+      key: 'category',
+      width: 120,
+    },
+    {
+      title: '描述',
+      dataIndex: 'description',
+      key: 'description',
+      ellipsis: true,
+      width: 200,
+      render: (description: string) => description || '-',
+    },
+    {
+      title: '支付人',
+      dataIndex: 'payer',
+      key: 'payer',
+      width: 150,
+      render: (payer: any) => typeof payer === 'string' ? payer : (payer?.username || '-'),
+    },
+    {
+      title: '日期',
+      dataIndex: 'date',
+      key: 'date',
+      width: 120,
+      render: (date: string | Date) => date ? dayjs(date).format('YYYY-MM-DD') : '-',
+    },
+    {
+      title: '账单类型',
+      dataIndex: 'isFamilyBill',
+      key: 'isFamilyBill',
+      width: 120,
+      render: (isFamilyBill: boolean) => (
+        isFamilyBill ? <Tag color="blue">家庭账单</Tag> : <Tag color="default">个人账单</Tag>
+      ),
+    },
+    {
+      title: '操作',
+      key: 'action',
+      width: 100,
+      fixed: 'right',
+      render: (_:undefined, record: Transaction) => (
+        <Popconfirm
+          title="确定要删除这条记录吗？"
+          onConfirm={() => record.id && handleDelete(Number(record.id))}
+          okText="确定"
+          cancelText="取消"
+        >
+          <Button type="text" danger icon={<DeleteOutlined />} />
+        </Popconfirm>
+      ),
+    },
+  ];
+
   return (
     <Card 
       title={`交易记录 (${transactions.length} 条)`}
@@ -62,49 +136,10 @@ const TransactionList: React.FC<TransactionListProps> = ({
         </Space>
       }
     >
-      <List
+      <Table
+        columns={columns}
         dataSource={transactions}
-        renderItem={(transaction) => (
-          <List.Item
-            actions={[
-              <Popconfirm
-                title="确定要删除这条记录吗？"
-                onConfirm={() => transaction.id && handleDelete(Number(transaction.id))}
-                okText="确定"
-                cancelText="取消"
-              >
-                <Button type="text" danger icon={<DeleteOutlined />} />
-              </Popconfirm>,
-            ]}
-          >
-            <List.Item.Meta
-              title={
-                <Space>
-                  <span>{(transaction as Transaction).title || ''}</span>
-                  <Tag color={transaction.type === 'income' ? 'green' : 'red'}>
-                    {transaction.type === 'income' ? '收入' : '支出'}
-                  </Tag>
-                </Space>
-              }
-              description={
-                <Space direction="vertical" size={0}>
-                  <span>金额: ¥{transaction.amount}</span>
-                  <span>分类: {transaction.category}</span>
-                  {transaction.isFamilyBill && (
-                    <Tag color="blue">家庭账单</Tag>
-                  )}
-                  {transaction.description && (
-                    <span>备注: {transaction.description}</span>
-                  )}
-                  {transaction.payer && (
-                    <span>支付人: {typeof transaction.payer === 'string' ? transaction.payer : transaction.payer.username}</span>
-                  )}
-                  <span>日期: {dayjs(transaction.date).format('YYYY-MM-DD')}</span>
-                </Space>
-              }
-            />
-          </List.Item>
-        )}
+        rowKey="id"
         pagination={{
           pageSize: 10,
           showSizeChanger: true,
@@ -112,6 +147,12 @@ const TransactionList: React.FC<TransactionListProps> = ({
           showTotal: (total, range) =>
             `第 ${range[0]}-${range[1]} 条，共 ${total} 条`,
         }}
+        scroll={{ x: 'max-content' }}
+        loading={transactions.length === 0 && !filters}
+        locale={{
+          emptyText: transactions.length === 0 ? '暂无交易记录' : '暂无数据',
+        }}
+        size="middle"
       />
     </Card>
   );
