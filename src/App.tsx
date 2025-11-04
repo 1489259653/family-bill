@@ -58,8 +58,9 @@ const Dashboard: React.FC = () => {
             familyIncome={summary.familyIncome}
             familyExpense={summary.familyExpense}
           />
-          
-          <TransactionForm onAddTransaction={addTransaction} />
+          <div className='mt-14'>
+            <TransactionForm onAddTransaction={addTransaction} />
+          </div>
           
           <TransactionList
             transactions={transactions}

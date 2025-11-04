@@ -4,12 +4,12 @@ import { PlusOutlined } from '@ant-design/icons';
 import { FamilyMember, TransactionFormData, User } from '../types';
 import { CATEGORIES } from '../types';
 import dayjs from 'dayjs';
-import { useFamilies } from '../services/api';
+import { CreateTransactionData, useFamilies } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import TextArea from 'antd/es/input/TextArea';
 
 interface TransactionFormProps {
-  onAddTransaction: (data: TransactionFormData) => void;
+  onAddTransaction: (data: CreateTransactionData) => Promise<any>;
 }
 
 const TransactionForm: React.FC<TransactionFormProps> = ({ onAddTransaction }) => {
@@ -25,6 +25,11 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onAddTransaction }) =
   const isInFamily = !!currentFamily?.data;
 
   const handleSubmit = async (values: any) => {
+    // 确保payerId在家庭账单模式下有值
+    const payerId = values.isFamilyBill && isInFamily 
+      ? values.payerId || (currentUser?.id as number)
+      : values.payer || undefined;
+      
     const formData: TransactionFormData = {
       type: values.type,
       category: values.category,
@@ -32,11 +37,10 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onAddTransaction }) =
       description: values.description,
       date: values.date.toDate(), 
       isFamilyBill: values.isFamilyBill || false,
-      payerId: values.isFamilyBill ? values.payerId : values.payer || ''
+      payerId: payerId
     };
-    console.log(typeof formData.date);
     try {
-      await onAddTransaction(formData);
+      await onAddTransaction(formData as CreateTransactionData);
       form.resetFields(['description', 'amount', 'category']);
       message.success('交易添加成功！');
     } catch (error) {
@@ -64,7 +68,8 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onAddTransaction }) =
         onFinish={handleSubmit}
         initialValues={{
           type: 'income',
-          date: dayjs()
+          date: dayjs(),
+          payerId: currentUser?.id // 初始化支付人ID
         }}
       >
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
