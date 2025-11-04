@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { Card, Form, Input, Select, Button, DatePicker, InputNumber, message } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Card, Form, Input, Select, Button, DatePicker, InputNumber, message, Checkbox } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
-import { TransactionFormData } from '../types';
+import { TransactionFormData, User } from '../types';
 import { CATEGORIES } from '../types';
 import dayjs from 'dayjs';
+import { familiesAPI } from '../services/api';
 
 interface TransactionFormProps {
   onAddTransaction: (data: TransactionFormData) => void;
@@ -12,6 +13,31 @@ interface TransactionFormProps {
 const TransactionForm: React.FC<TransactionFormProps> = ({ onAddTransaction }) => {
   const [form] = Form.useForm();
   const [transactionType, setTransactionType] = useState<'income' | 'expense'>('income');
+  const [isInFamily, setIsInFamily] = useState(false);
+  const [familyMembers, setFamilyMembers] = useState<User[]>([]);
+  const [currentUser] = useState(() => {
+    const userStr = localStorage.getItem('user');
+    return userStr ? JSON.parse(userStr) : null;
+  });
+
+  useEffect(() => {
+    const checkFamilyStatus = async () => {
+      try {
+        const currentFamily = await familiesAPI.getCurrent();
+        if (currentFamily.success && currentFamily.data) {
+          setIsInFamily(true);
+          const members = await familiesAPI.getMembers();
+          if (members.success) {
+            setFamilyMembers(members.data);
+          }
+        }
+      } catch (error) {
+        console.error('获取家庭信息失败:', error);
+      }
+    };
+    
+    checkFamilyStatus();
+  }, []);
 
   const handleSubmit = (values: any) => {
     const formData: TransactionFormData = {
@@ -19,12 +45,13 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onAddTransaction }) =
       category: values.category,
       amount: values.amount,
       description: values.description,
-      payer: values.payer || '',
-      date: values.date.format('YYYY-MM-DD')
+      date: values.date.format('YYYY-MM-DD'),
+      isFamilyBill: values.isFamilyBill || false,
+      payer: values.isFamilyBill ? values.payerId : values.payer || ''
     };
     
     onAddTransaction(formData);
-    form.resetFields();
+    form.resetFields(['description', 'amount', 'category']);
     message.success('交易添加成功！');
   };
 
@@ -93,11 +120,48 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onAddTransaction }) =
           </Form.Item>
         </div>
 
+        {isInFamily && (
+          <Form.Item
+            name="isFamilyBill"
+            valuePropName="checked"
+            style={{ marginBottom: '16px' }}
+          >
+            <Checkbox>家庭账单</Checkbox>
+          </Form.Item>
+        )}
+
         <Form.Item
-          name="payer"
-          label="支付人"
+          noStyle
+          shouldUpdate={(prevValues, currentValues) => prevValues.isFamilyBill !== currentValues.isFamilyBill}
         >
-          <Input placeholder="请输入支付人姓名" />
+          {({ getFieldValue }) => {
+            const isFamilyBill = getFieldValue('isFamilyBill');
+            if (isFamilyBill && isInFamily) {
+              return (
+                <Form.Item
+                  name="payerId"
+                  label="支付人"
+                  rules={[{ required: true, message: '请选择支付人' }]}
+                >
+                  <Select placeholder="请选择支付人" defaultValue={currentUser?.id}>
+                    {familyMembers.map(member => (
+                      <Select.Option key={member.id} value={member.id}>
+                        {member.username}
+                      </Select.Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+              );
+            }
+            return (
+              <Form.Item
+                name="payer"
+                label="支付人"
+              >
+                <Input placeholder="请输入支付人姓名" />
+              </Form.Item>
+            );
+          }}
         </Form.Item>
 
         <Form.Item

@@ -13,10 +13,10 @@ services:
       - "3306:3306"
     volumes:
       - mariadb_data:/var/lib/mysql
-      - ./backend/init-database.sql:/docker-entrypoint-initdb.d/init-database.sql
+      - ./init-database.sql:/docker-entrypoint-initdb.d/init-database.sql
 
   backend:
-    build: ./backend
+    build: .
     ports:
       - "3001:3001"
     restart: unless-stopped
@@ -30,14 +30,6 @@ services:
       - JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
     depends_on:
       - mariadb
-
-  frontend:
-    build: .
-    ports:
-      - "3000:3000"
-    restart: unless-stopped
-    environment:
-      - NODE_ENV=production
 
 volumes:
   mariadb_data:

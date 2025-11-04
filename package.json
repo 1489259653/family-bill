@@ -7,23 +7,36 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "serve": "npx serve dist -p 8080"
+    "serve": "npx serve dist -p 8080",
+    "start:frontend": "npm run dev",
+    "start:backend": "cd backend && npm run start:dev",
+    "start:all": "concurrently \"npm run start:backend\" \"npm run start:frontend\""
   },
   "dependencies": {
+    "@ant-design/icons": "^5.0.0",
+    "@ant-design/icons-svg": "^4.4.2",
+    "antd": "^5.0.0",
+    "axios": "^1.6.0",
+    "dayjs": "^1.11.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "antd": "^5.0.0",
-    "@ant-design/icons": "^5.0.0",
-    "dayjs": "^1.11.0"
+    "react-router-dom": "^6.20.0"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^4.0.0",
+    "concurrently": "^8.0.0",
     "typescript": "^5.0.0",
     "vite": "^5.0.0"
   },
-  "keywords": ["react", "typescript", "antd", "finance", "tracker"],
+  "keywords": [
+    "react",
+    "typescript",
+    "antd",
+    "finance",
+    "tracker"
+  ],
   "author": "Family Finance App",
   "license": "MIT"
 }

@@ -1,15 +1,17 @@
 import React from 'react';
-import { Card, List, Select, Button, DatePicker, Space, Tag, Popconfirm } from 'antd';
-import { DeleteOutlined, FilterOutlined } from '@ant-design/icons';
-import { Transaction, CATEGORIES } from '../types';
+import { Card, List, Button, Tag, Space, Popconfirm, message, Select } from 'antd';
+import { DeleteOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
+import { Transaction } from '../types';
+
+
 
 interface TransactionListProps {
   transactions: Transaction[];
   filters: any;
   onUpdateFilters: (filters: any) => void;
   onClearFilters: () => void;
-  onDeleteTransaction: (id: string) => void;
+  onDeleteTransaction: (id: number) => void;
 }
 
 const TransactionList: React.FC<TransactionListProps> = ({
@@ -17,114 +19,91 @@ const TransactionList: React.FC<TransactionListProps> = ({
   filters,
   onUpdateFilters,
   onClearFilters,
-  onDeleteTransaction
+  onDeleteTransaction,
 }) => {
-  const getCategoryLabel = (value: string) => {
-    const allCategories = [...CATEGORIES.income, ...CATEGORIES.expense];
-    const category = allCategories.find(cat => cat.value === value);
-    return category ? category.label : value;
+  const handleDelete = async (id: number) => {
+    try {
+      await onDeleteTransaction(id);
+      message.success('删除成功');
+    } catch (error) {
+      message.error('删除失败');
+    }
   };
-
-  const getTypeColor = (type: 'income' | 'expense') => {
-    return type === 'income' ? 'green' : 'red';
-  };
-
-  const usedCategories = Array.from(new Set(transactions.map(t => t.category)));
 
   return (
     <Card 
-      title="交易记录" 
+      title={`交易记录 (${transactions.length} 条)`}
+      style={{ marginTop: 24 }}
       extra={
-        <Button icon={<FilterOutlined />} onClick={onClearFilters}>
-          清除筛选
-        </Button>
+        <Space>
+          <Select
+            defaultValue={filters.billType || 'all'}
+            style={{ width: 150 }}
+            onChange={(value) => onUpdateFilters({ billType: value })}
+          >
+            <Select.Option value="all">全部账单</Select.Option>
+            <Select.Option value="personal">个人账单</Select.Option>
+            <Select.Option value="family">家庭账单</Select.Option>
+          </Select>
+          {Object.keys(filters).some(key => filters[key] !== 'all' && filters[key] !== '') && (
+            <Button type="link" onClick={onClearFilters}>
+              清除筛选
+            </Button>
+          )}
+        </Space>
       }
     >
-      <Space direction="vertical" style={{ width: '100%' }} size="middle">
-        <Space wrap>
-          <Select
-            value={filters.type}
-            onChange={value => onUpdateFilters({ type: value })}
-            style={{ width: 120 }}
+      <List
+        dataSource={transactions}
+        renderItem={(transaction) => (
+          <List.Item
+            actions={[
+              <Popconfirm
+                title="确定要删除这条记录吗？"
+                onConfirm={() => transaction.id && handleDelete(Number(transaction.id))}
+                okText="确定"
+                cancelText="取消"
+              >
+                <Button type="text" danger icon={<DeleteOutlined />} />
+              </Popconfirm>,
+            ]}
           >
-            <Select.Option value="all">所有类型</Select.Option>
-            <Select.Option value="income">收入</Select.Option>
-            <Select.Option value="expense">支出</Select.Option>
-          </Select>
-
-          <Select
-            value={filters.category}
-            onChange={value => onUpdateFilters({ category: value })}
-            style={{ width: 120 }}
-            placeholder="分类筛选"
-          >
-            <Select.Option value="all">所有分类</Select.Option>
-            {usedCategories.map(category => (
-              <Select.Option key={category} value={category}>
-                {getCategoryLabel(category)}
-              </Select.Option>
-            ))}
-          </Select>
-
-          <Select
-            value={filters.payer}
-            onChange={value => onUpdateFilters({ payer: value })}
-            style={{ width: 120 }}
-            placeholder="支付人筛选"
-          >
-            <Select.Option value="all">所有支付人</Select.Option>
-            {Array.from(new Set(transactions.map(t => t.payer).filter(payer => payer))).map(payer => (
-              <Select.Option key={payer} value={payer}>
-                {payer}
-              </Select.Option>
-            ))}
-          </Select>
-
-          <DatePicker
-            value={filters.date ? dayjs(filters.date) : null}
-            onChange={date => onUpdateFilters({ date: date ? date.format('YYYY-MM-DD') : '' })}
-            placeholder="日期筛选"
-          />
-        </Space>
-
-        <List
-          dataSource={transactions}
-          locale={{ emptyText: '暂无交易记录' }}
-          renderItem={transaction => (
-            <List.Item
-              actions={[
-                <Popconfirm
-                  title="确定要删除这条记录吗？"
-                  onConfirm={() => onDeleteTransaction(transaction.id)}
-                  okText="确定"
-                  cancelText="取消"
-                >
-                  <Button type="text" danger icon={<DeleteOutlined />} />
-                </Popconfirm>
-              ]}
-            >
-              <List.Item.Meta
-                avatar={
-                  <Tag color={getTypeColor(transaction.type)}>
+            <List.Item.Meta
+              title={
+                <Space>
+                  <span>{(transaction as any).title || ''}</span>
+                  <Tag color={transaction.type === 'income' ? 'green' : 'red'}>
                     {transaction.type === 'income' ? '收入' : '支出'}
                   </Tag>
-                }
-                title={transaction.description}
-                description={
-                  <Space>
-                    <span>{getCategoryLabel(transaction.category)}</span>
-                    <span>{dayjs(transaction.date).format('YYYY-MM-DD')}</span>
-                    {transaction.payer && <span>支付人: {transaction.payer}</span>}
-                  </Space>
-                }
-              />
-              <div style={{ fontWeight: 'bold', color: transaction.type === 'income' ? '#3f8600' : '#cf1322' }}>
-                {transaction.type === 'income' ? '+' : '-'}¥{transaction.amount.toFixed(2)}
-              </div>
-            </List.Item>
-          )}
-        />
-      </Space>
+                </Space>
+              }
+              description={
+                <Space direction="vertical" size={0}>
+                  <span>金额: ¥{transaction.amount.toFixed(2)}</span>
+                  <span>分类: {transaction.category}</span>
+                  {transaction.isFamilyBill && (
+                    <Tag color="blue">家庭账单</Tag>
+                  )}
+                  {transaction.description && (
+                    <span>备注: {transaction.description}</span>
+                  )}
+                  {transaction.payer && (
+                    <span>支付人: {typeof transaction.payer === 'string' ? transaction.payer : transaction.payer.username}</span>
+                  )}
+                  <span>日期: {dayjs(transaction.date).format('YYYY-MM-DD')}</span>
+                </Space>
+              }
+            />
+          </List.Item>
+        )}
+        pagination={{
+          pageSize: 10,
+          showSizeChanger: true,
+          showQuickJumper: true,
+          showTotal: (total, range) =>
+            `第 ${range[0]}-${range[1]} 条，共 ${total} 条`,
+        }}
+      />
     </Card>
   );
 };

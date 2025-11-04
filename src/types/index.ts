@@ -1,12 +1,29 @@
+export interface User {
+  id: number;
+  username: string;
+  email: string;
+}
+
+export interface Family {
+  id: number;
+  name: string;
+  invitationCode: string;
+  description?: string;
+  createdAt: string;
+}
+
 export interface Transaction {
-  id: string;
+  id: string | number;
   type: 'income' | 'expense';
   category: string;
   amount: number;
   description: string;
-  payer: string;
+  payer: User | string;
   date: string;
-  timestamp: string;
+  timestamp?: string;
+  isFamilyBill: boolean;
+  family?: Family;
+  user?: User;
 }
 
 export interface TransactionFormData {
@@ -14,8 +31,9 @@ export interface TransactionFormData {
   category: string;
   amount: number;
   description: string;
-  payer: string;
+  payer: string | number;
   date: string;
+  isFamilyBill: boolean;
 }
 
 export interface SummaryData {
@@ -29,6 +47,7 @@ export interface FilterOptions {
   category: string;
   payer: string;
   date: string;
+  billType?: 'all' | 'personal' | 'family';
 }
 
 export const CATEGORIES = {
