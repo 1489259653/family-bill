@@ -1,9 +1,7 @@
+import { Type } from 'class-transformer';
 import { IsNotEmpty, IsNumber, IsString, IsEnum, IsDate, IsOptional, IsBoolean } from 'class-validator';
 
 export class CreateTransactionDto {
-  @IsNotEmpty()
-  @IsString()
-  title: string;
 
   @IsNotEmpty()
   @IsNumber({ maxDecimalPlaces: 2 })
@@ -19,6 +17,7 @@ export class CreateTransactionDto {
 
   @IsNotEmpty()
   @IsDate()
+  @Type(() => Date)
   date: Date;
 
   @IsString()

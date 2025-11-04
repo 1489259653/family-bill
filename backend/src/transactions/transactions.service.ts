@@ -92,16 +92,15 @@ export class TransactionsService {
       // 首先获取用户的家庭
       const familyMember = await this.familyMemberRepository.findOne({
         where: { user: { id: userId }, isActive: true },
+        relations: ['family'],
       });
 
       if (familyMember) {
         // 个人账单或家庭账单
-        query.where = {
-          $or: [
-            { user: { id: userId }, isFamilyBill: false },
-            { family: { id: familyMember.family.id } },
-          ],
-        };
+        query.where = [
+          { user: { id: userId }, isFamilyBill: false },
+          { family: { id: familyMember.family.id } },
+        ];
       } else {
         // 只有个人账单
         query.where = { user: { id: userId } };

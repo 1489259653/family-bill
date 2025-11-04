@@ -29,11 +29,11 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onAddTransaction }) =
       category: values.category,
       amount: values.amount,
       description: values.description,
-      date: values.date.format('YYYY-MM-DD'),
+      date: values.date.toDate(), 
       isFamilyBill: values.isFamilyBill || false,
-      payer: values.isFamilyBill ? values.payerId : values.payer || ''
+      payerId: values.isFamilyBill ? values.payerId : values.payer || ''
     };
-    
+    console.log(typeof formData.date);
     try {
       await onAddTransaction(formData);
       form.resetFields(['description', 'amount', 'category']);

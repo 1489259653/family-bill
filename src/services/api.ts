@@ -1,6 +1,6 @@
 import axios from 'axios';
-import useSWR from 'swr';
-import { User, Family, Transaction as TransactionType } from '../types';
+
+import { User } from '../types';
 
 const API_BASE_URL = 'http://localhost:3001';
 
@@ -51,7 +51,7 @@ axiosInstance.interceptors.response.use(
 );
 
 // fetcher函数
-export const fetcher = async (url: string, method: string = 'GET', data?: any) => {
+export const fetcher = async <T = any>(url: string, method: string = 'GET', data?: any): Promise<T> => {
   const config: any = {
     method,
     url,
@@ -63,7 +63,7 @@ export const fetcher = async (url: string, method: string = 'GET', data?: any) =
 
   try {
     const response = await axiosInstance(config);
-    return response;
+    return response as T;
   } catch (error) {
     throw error;
   }
@@ -99,143 +99,28 @@ export interface CreateTransactionData {
   category: string;
   amount: number;
   description: string;
-  date: string;
+  date: Date;
   isFamilyBill: boolean;
   payerId?: number;
 }
 
 // 工具函数：处理查询参数
-const buildUrlWithParams = (baseUrl: string, params?: Record<string, string>) => {
+export const buildUrlWithParams = (baseUrl: string, params?: Record<string, string>) => {
   if (!params || Object.keys(params).length === 0) return baseUrl;
   const queryString = new URLSearchParams(params).toString();
   return `${baseUrl}?${queryString}`;
 };
 
-// Auth相关hooks
-export const useAuth = () => {
-  // 登录函数
-  const login = async (data: LoginData): Promise<AuthResponse> => {
-    return await fetcher('/auth/login', 'POST', data);
-  };
+// 先导入hooks中的函数
+import { apiUseAuth as importedApiUseAuth } from '../hooks/useAuth';
+import * as familiesHooks from '../hooks/useFamilies';
+import * as transactionsHooks from '../hooks/useTransactions';
 
-  // 注册函数
-  const register = async (data: RegisterData): Promise<AuthResponse> => {
-    return await fetcher('/auth/register', 'POST', data);
-  };
+// 重新导出hooks中的内容
+export const apiUseAuth = importedApiUseAuth;
+// 为了兼容现有的导入，保留useAuth导出
+export const useAuth = importedApiUseAuth;
 
-  return { login, register };
-};
-
-// Families相关hooks
-export const useFamilies = () => {
-  // 获取当前家庭信息
-  const { data: currentFamily, error: currentFamilyError, mutate: mutateCurrentFamily } = 
-    useSWR('/families/current', fetcher);
-
-  // 获取家庭成员
-  const { data: familyMembers, error: familyMembersError, mutate: mutateFamilyMembers } = 
-    useSWR('/families/members', fetcher);
-
-  // 获取邀请码
-  const { data: invitationCode, error: invitationCodeError } = 
-    useSWR('/families/invitation-code', fetcher);
-
-  // 创建家庭
-  const createFamily = async (data: CreateFamilyData) => {
-    const result = await fetcher('/families', 'POST', data);
-    mutateCurrentFamily(); // 重新获取当前家庭信息
-    return result;
-  };
-
-  // 加入家庭
-  const joinFamily = async (data: JoinFamilyData) => {
-    const result = await fetcher('/families/join', 'POST', data);
-    mutateCurrentFamily(); // 重新获取当前家庭信息
-    return result;
-  };
-
-  // 退出家庭
-  const leaveFamily = async () => {
-    const result = await fetcher('/families/leave', 'POST');
-    mutateCurrentFamily(null); // 清除当前家庭信息
-    return result;
-  };
-
-  return {
-    currentFamily,
-    currentFamilyError,
-    familyMembers,
-    familyMembersError,
-    invitationCode,
-    invitationCodeError,
-    createFamily,
-    joinFamily,
-    leaveFamily,
-    refreshCurrentFamily: mutateCurrentFamily,
-    refreshFamilyMembers: mutateFamilyMembers
-  };
-};
-
-// Transactions相关hooks
-export const useTransactions = (billType?: 'all' | 'personal' | 'family') => {
-  // 构建查询URL
-  const getTransactionsUrl = () => {
-    const params: Record<string, string> = {};
-    if (billType === 'personal') {
-      params.isFamilyBill = 'false';
-    } else if (billType === 'family') {
-      params.isFamilyBill = 'true';
-    }
-    return buildUrlWithParams('/transactions', params);
-  };
-
-  // 获取交易列表
-  const { 
-    data: transactions, 
-    error: transactionsError, 
-    mutate: mutateTransactions 
-  } = useSWR(getTransactionsUrl(), fetcher);
-
-  // 获取交易汇总
-  const { 
-    data: summary, 
-    error: summaryError, 
-    mutate: mutateSummary 
-  } = useSWR('/transactions/summary', fetcher);
-
-  // 创建交易
-  const createTransaction = async (data: CreateTransactionData) => {
-    const result = await fetcher('/transactions', 'POST', data);
-    mutateTransactions(); // 重新获取交易列表
-    mutateSummary(); // 重新获取汇总信息
-    return result;
-  };
-
-  // 更新交易
-  const updateTransaction = async (id: number, data: Partial<CreateTransactionData>) => {
-    const result = await fetcher(`/transactions/${id}`, 'PATCH', data);
-    mutateTransactions(); // 重新获取交易列表
-    mutateSummary(); // 重新获取汇总信息
-    return result;
-  };
-
-  // 删除交易
-  const deleteTransaction = async (id: number) => {
-    const result = await fetcher(`/transactions/${id}`, 'DELETE');
-    mutateTransactions(); // 重新获取交易列表
-    mutateSummary(); // 重新获取汇总信息
-    return result;
-  };
-
-  return {
-    transactions,
-    transactionsError,
-    summary,
-    summaryError,
-    createTransaction,
-    updateTransaction,
-    deleteTransaction,
-    refreshTransactions: mutateTransactions,
-    refreshSummary: mutateSummary
-  };
-};
+// 导出其他hooks
+export const useFamilies = familiesHooks.useFamilies;
+export const useTransactions = transactionsHooks.useTransactions;

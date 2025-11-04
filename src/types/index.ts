@@ -14,13 +14,14 @@ export interface Family {
 }
 
 export interface Transaction {
+  title: string;
   id: string | number;
   type: 'income' | 'expense';
   category: string;
-  amount: number;
+  amount: string;
   description: string;
   payer: User | string;
-  date: string;
+  date: Date;
   timestamp?: string;
   isFamilyBill: boolean;
   family?: Family;
@@ -32,8 +33,8 @@ export interface TransactionFormData {
   category: string;
   amount: number;
   description: string;
-  payer: string | number;
-  date: string;
+  payerId: string | number;
+  date: Date;
   isFamilyBill: boolean;
 }
 
@@ -41,6 +42,20 @@ export interface SummaryData {
   totalIncome: number;
   totalExpense: number;
   balance: number;
+}
+
+export interface FamilyMember {
+  id: number;
+  username: string;
+  email: string;
+  isAdmin?: boolean;
+  joinedAt?: string;
+}
+
+export interface FamilyMembersResponse {
+  success: boolean;
+  message?: string;
+  data: FamilyMember[];
 }
 
 export interface FilterOptions {

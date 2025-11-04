@@ -36,10 +36,10 @@ export class FamiliesController {
         data: {
           id: 1,
           name: '我的家庭',
-          createdAt: '2025-11-04T12:00:00Z',
-        },
-      },
-    },
+          createdAt: '2025-11-04T12:00:00Z'
+        }
+      }
+    }
   })
   @ApiResponse({
     status: 400,
@@ -48,6 +48,7 @@ export class FamiliesController {
   // 创建新家庭
   @Post()
   async createFamily(@Body() createFamilyDto: CreateFamilyDto, @Request() req) {
+    console.log('createFamilyDto:', createFamilyDto);
     const family = await this.familiesService.createFamily(createFamilyDto, req.user.userId);
     return {
       success: true,

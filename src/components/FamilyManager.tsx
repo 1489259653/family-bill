@@ -21,9 +21,8 @@ const FamilyManager: React.FC = () => {
     refreshCurrentFamily,
     refreshFamilyMembers
   } = useFamilies();
-  
   // 判断用户是否已加入家庭
-  const isInFamily = !!currentFamily?.data;
+  const isInFamily = !!currentFamily;
   
   const [createModalVisible, setCreateModalVisible] = useState(false);
   const [joinModalVisible, setJoinModalVisible] = useState(false);
@@ -79,14 +78,14 @@ const FamilyManager: React.FC = () => {
   const handleGetInvitationCode = () => {
     if (invitationCode?.error) {
       message.error('只有家庭管理员可以生成邀请码');
-    } else if (invitationCode?.data?.invitationCode) {
+    } else if (invitationCode?.invitationCode) {
       setInviteModalVisible(true);
     }
   };
 
   // 复制邀请码
   const handleCopyInvitationCode = () => {
-    navigator.clipboard.writeText(invitationCode?.data?.invitationCode || '');
+    navigator.clipboard.writeText(invitationCode?.invitationCode || '');
     message.success('邀请码已复制到剪贴板');
   };
 

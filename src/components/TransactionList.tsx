@@ -80,7 +80,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
             <List.Item.Meta
               title={
                 <Space>
-                  <span>{(transaction as any).title || ''}</span>
+                  <span>{(transaction as Transaction).title || ''}</span>
                   <Tag color={transaction.type === 'income' ? 'green' : 'red'}>
                     {transaction.type === 'income' ? '收入' : '支出'}
                   </Tag>
@@ -88,7 +88,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
               }
               description={
                 <Space direction="vertical" size={0}>
-                  <span>金额: ¥{transaction.amount.toFixed(2)}</span>
+                  <span>金额: ¥{transaction.amount}</span>
                   <span>分类: {transaction.category}</span>
                   {transaction.isFamilyBill && (
                     <Tag color="blue">家庭账单</Tag>

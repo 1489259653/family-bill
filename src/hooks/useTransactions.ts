@@ -1,131 +1,124 @@
-import { useState, useCallback } from 'react';
-import { Transaction, TransactionFormData, FilterOptions } from '../types';
-import { useTransactions as useSWRTransactions } from '../services/api';
-import { useAuth } from '../contexts/AuthContext';
+import useSWR from 'swr';
+import { useState } from 'react';
+import { fetcher, CreateTransactionData, buildUrlWithParams } from '../services/api';
 
-export const useTransactions = () => {
-  const [filters, setFilters] = useState<FilterOptions>({
-    type: 'all',
-    category: 'all',
-    payer: 'all',
-    date: '',
-    billType: 'all'
+// 默认汇总数据，避免undefined错误
+const defaultSummary = {
+  totalIncome: 0,
+  totalExpense: 0,
+  balance: 0,
+  personalIncome: 0,
+  personalExpense: 0,
+  familyIncome: 0,
+  familyExpense: 0
+};
+
+// Transactions相关hooks
+export const useTransactions = (billType?: 'all' | 'personal' | 'family') => {
+  // 添加filters状态管理
+  const [filters, setFilters] = useState({
+    search: '',
+    category: '',
+    dateRange: null,
+    type: '',
+    isFamilyBill: undefined
   });
-  
-  const { transactions = { data: [] }, createTransaction, updateTransaction, deleteTransaction: swrDeleteTransaction } = useSWRTransactions() || {};
-  const { logout } = useAuth();
-  const allTransactions = transactions?.data || [];
 
-  // 计算汇总信息
-  const summary = {
-    totalIncome: allTransactions
-      .filter((t: Transaction) => t.type === 'income')
-      .reduce((sum: number, t: Transaction) => sum + t.amount, 0),
-    totalExpense: allTransactions
-      .filter((t: Transaction) => t.type === 'expense')
-      .reduce((sum: number, t: Transaction) => sum + t.amount, 0),
-    balance: allTransactions
-      .filter((t: Transaction) => t.type === 'income')
-      .reduce((sum: number, t: Transaction) => sum + t.amount, 0) - 
-      allTransactions
-      .filter((t: Transaction) => t.type === 'expense')
-      .reduce((sum: number, t: Transaction) => sum + t.amount, 0),
-    personalIncome: allTransactions
-      .filter((t: Transaction) => t.type === 'income' && !t.isFamilyBill)
-      .reduce((sum: number, t: Transaction) => sum + t.amount, 0),
-    personalExpense: allTransactions
-      .filter((t: Transaction) => t.type === 'expense' && !t.isFamilyBill)
-      .reduce((sum: number, t: Transaction) => sum + t.amount, 0),
-    familyIncome: allTransactions
-      .filter((t: Transaction) => t.type === 'income' && t.isFamilyBill)
-      .reduce((sum: number, t: Transaction) => sum + t.amount, 0),
-    familyExpense: allTransactions
-      .filter((t: Transaction) => t.type === 'expense' && t.isFamilyBill)
-      .reduce((sum: number, t: Transaction) => sum + t.amount, 0)
+  // 构建查询URL
+  const getTransactionsUrl = () => {
+    const params: Record<string, string> = {};
+    if (billType === 'personal') {
+      params.isFamilyBill = 'false';
+    } else if (billType === 'family') {
+      params.isFamilyBill = 'true';
+    }
+    return buildUrlWithParams('/transactions', params);
   };
 
-  const addTransaction = useCallback(async (formData: TransactionFormData) => {
-    try {
-      // 转换为API需要的格式
-      const transactionData = {
-        type: formData.type,
-        category: formData.category,
-        amount: formData.amount,
-        description: formData.description,
-        date: formData.date,
-        isFamilyBill: formData.isFamilyBill || false,
-        payerId: formData.isFamilyBill && typeof formData.payer === 'number' ? formData.payer : undefined
-      };
-      
-      const newTransaction = await createTransaction(transactionData);
-      return newTransaction;
-    } catch (error) {
-      console.error('添加交易失败:', error);
-      // 处理401未授权错误
-      const errorObj = error as any;
-      if (errorObj.statusCode === 401) {
-        logout();
-      }
-      throw error;
-    }
-  }, [createTransaction, logout]);
+  // 获取所有交易（不筛选billType）
+  const { 
+    data: allTransactions = [] 
+  } = useSWR(buildUrlWithParams('/transactions'), fetcher<any[]>);
 
-  const deleteTransaction = useCallback(async (transactionId: number) => {
-    try {
-      await swrDeleteTransaction(transactionId);
-    } catch (error) {
-      console.error('删除交易失败:', error);
-      // 处理401未授权错误
-      const errorObj = error as any;
-      if (errorObj.statusCode === 401) {
-        logout();
-      }
-      throw error;
-    }
-  }, [swrDeleteTransaction, logout]);
+  // 获取交易列表（可能按billType筛选）
+  const { 
+    data: transactions = [], 
+    error: transactionsError, 
+    mutate: mutateTransactions 
+  } = useSWR(getTransactionsUrl(), fetcher<any[]>);
 
-  // 计算经过筛选的交易列表
-  const filteredTransactions = useCallback(() => {
-    let filtered = [...allTransactions];
+  // 获取交易汇总
+  const { 
+    data: summaryData, 
+    error: summaryError, 
+    mutate: mutateSummary 
+  } = useSWR('/transactions/summary', fetcher<any>);
+
+  // 使用默认值确保summary不为undefined
+  const summary = summaryData || defaultSummary;
+
+  // 创建交易（重命名为addTransaction以匹配App.tsx中的使用）
+  const addTransaction = async (data: CreateTransactionData) => {
+    // Convert Date object to string in YYYY-MM-DD format for API
+    const formattedData = data;
     
-    if (filters.type !== 'all') {
-      filtered = filtered.filter(t => t.type === filters.type);
+    const result = await fetcher('/transactions', 'POST', formattedData);
+    mutateTransactions(); // 重新获取交易列表
+    mutateSummary(); // 重新获取汇总信息
+    return result;
+  };
+
+  // 更新交易
+  const updateTransaction = async (id: number, data: Partial<CreateTransactionData>) => {
+    // Format date if it's included in the update data
+    const formattedData = { ...data };
+    if (formattedData.date instanceof Date) {
+      formattedData.date = formattedData.date.toISOString().split('T')[0]; // Format: YYYY-MM-DD
     }
     
-    if (filters.category !== 'all') {
-      filtered = filtered.filter(t => t.category === filters.category);
-    }
-    
-    if (filters.date) {
-      filtered = filtered.filter(t => t.date === filters.date);
-    }
-    
-    return filtered;
-  }, [allTransactions, filters]);
+    const result = await fetcher(`/transactions/${id}`, 'PATCH', formattedData);
+    mutateTransactions(); // 重新获取交易列表
+    mutateSummary(); // 重新获取汇总信息
+    return result;
+  };
 
-  const updateFilters = useCallback((newFilters: Partial<FilterOptions>) => {
-    setFilters({ ...filters, ...newFilters });
-  }, [filters]);
+  // 删除交易
+  const deleteTransaction = async (id: number) => {
+    const result = await fetcher(`/transactions/${id}`, 'DELETE');
+    mutateTransactions(); // 重新获取交易列表
+    mutateSummary(); // 重新获取汇总信息
+    return result;
+  };
 
-  const clearFilters = useCallback(() => {
-    const resetFilters: FilterOptions = {
-      type: 'all',
-      category: 'all',
-      payer: 'all',
-      date: '',
-      billType: 'all'
-    };
-    setFilters(resetFilters);
-  }, []);
+  // 更新筛选条件
+  const updateFilters = (newFilters: Partial<typeof filters>) => {
+    setFilters(prev => ({ ...prev, ...newFilters }));
+  };
+
+  // 清除筛选条件
+  const clearFilters = () => {
+    setFilters({
+      search: '',
+      category: '',
+      dateRange: null,
+      type: '',
+      isFamilyBill: undefined
+    });
+  };
 
   return {
-    transactions: filteredTransactions(),
+    transactions,
     allTransactions,
     filters,
     summary,
+    transactionsError,
+    summaryError,
     addTransaction,
+    updateTransaction,
     deleteTransaction,
     updateFilters,
-    clearFilters
+    clearFilters,
+    refreshTransactions: mutateTransactions,
+    refreshSummary: mutateSummary
   };
 };

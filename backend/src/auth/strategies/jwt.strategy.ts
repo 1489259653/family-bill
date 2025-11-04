@@ -13,8 +13,6 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') implements On
   private readonly logger = new Logger('JWT-STRATEGY', { timestamp: true });
   
   constructor() {
-    console.log('🔍 JwtStrategy 构造函数开始执行!');
-    
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: true, // 暂时忽略过期，便于测试
@@ -29,13 +27,10 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') implements On
 
   // 在模块初始化时执行
   onModuleInit() {
-    this.logger.log('🚀 JwtStrategy 模块初始化完成!');
-    this.logger.log('🚀 已准备好处理JWT认证请求!');
+    this.logger.log('✅ 已准备好处理JWT认证请求!');
   }
 
   async validate(payload: any) {
-    this.logger.log('🔐 JwtStrategy validate 方法被调用!');
-    this.logger.log(`🔐 接收到的payload类型: ${typeof payload}`);
     
     if (payload === null || payload === undefined) {
       this.logger.error('❌ JwtStrategy validate: payload为null或undefined!');
@@ -44,8 +39,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') implements On
     
     try {
       const payloadStr = JSON.stringify(payload);
-      this.logger.log(`🔐 JwtStrategy validate: payload内容=${payloadStr}`);
-      this.logger.log(`✅ JwtStrategy validate: 验证成功，返回payload`);
+      this.logger.log(`✅ 🔐 JwtStrategy validate: payload内容=${payloadStr}`);
     } catch (e) {
       this.logger.error(`❌ JwtStrategy validate: 无法序列化payload: ${e.message}`);
     }
