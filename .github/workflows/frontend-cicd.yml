@@ -20,7 +20,7 @@ jobs:
       - name: 设置Node.js环境
         uses: actions/setup-node@v3
         with:
-          node-version: '18.x'
+          node-version: '24.x'
           cache: 'pnpm'
 
       - name: 安装依赖
