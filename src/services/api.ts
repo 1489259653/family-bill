@@ -3,7 +3,7 @@ import axios from 'axios';
 import { User } from '../types';
 
 // 根据环境变量设置API基础URL
-// 生产环境通过Nginx代理访问API，避免跨域问题
+// 本地开发环境通过Vite代理访问API，生产环境通过Nginx代理
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 
 // 创建axios实例
