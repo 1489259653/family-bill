@@ -62,7 +62,7 @@ jobs:
           password: ${{ secrets.SERVER_PASSWORD }}
           script: |
             # 进入项目目录
-            cd /home/deploy/family-finance-tracker/backend
+            cd /home/deploy/family-finance-tracker/backend/backend
             
             # 安装生产依赖
             npm install --only=production
