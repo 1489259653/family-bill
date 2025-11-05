@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "build:production": "tsc && vite build --mode production",
     "preview": "vite preview",
     "serve": "npx serve dist -p 8080",
     "start:frontend": "npm run dev",

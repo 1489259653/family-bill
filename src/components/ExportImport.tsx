@@ -61,10 +61,11 @@ const ExportImport: React.FC<ExportImportProps> = ({ transactions, onImport }) =
               id: Date.now().toString() + Math.random(),
               type: typeStr === '收入' ? 'income' : 'expense',
               category: getCategoryValue(categoryStr),
-              amount: parseFloat(amountStr),
+              amount: (parseFloat(amountStr) || 0).toString(),
               description: description.replace(/^"/, '').replace(/"$/, ''),
-              date: date,
-              timestamp: new Date().toISOString()
+              date: new Date(date),
+              timestamp: new Date().toISOString(),
+              isFamilyBill: false,
             } as Transaction;
           });
 

@@ -19,7 +19,6 @@ export interface Transaction {
   category: string;
   amount: string;
   description: string;
-  payer: User | string;
   date: Date;
   timestamp?: string;
   isFamilyBill: boolean;

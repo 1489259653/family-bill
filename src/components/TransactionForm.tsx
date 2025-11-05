@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Card, Form, Input, Select, Button, DatePicker, InputNumber, message, Checkbox } from 'antd';
+import { Card, Form, Select, Button, DatePicker, InputNumber, message, Checkbox } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
-import { FamilyMember, TransactionFormData, User } from '../types';
+import { TransactionFormData } from '../types';
 import { CATEGORIES } from '../types';
 import dayjs from 'dayjs';
 import { CreateTransactionData, useFamilies } from '../services/api';
@@ -145,7 +145,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onAddTransaction }) =
                   rules={[{ required: true, message: '请选择支付人' }]}
                 >
                   <Select placeholder="请选择支付人" defaultValue={currentUser?.id}>
-                    {familyMembers.map((member: FamilyMember) => (
+                    {familyMembers?.map((member: any) => (
                       <Select.Option key={member.id} value={member.id}>
                         {member.username}
                       </Select.Option>

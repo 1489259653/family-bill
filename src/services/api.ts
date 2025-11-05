@@ -2,7 +2,8 @@ import axios from 'axios';
 
 import { User } from '../types';
 
-const API_BASE_URL = 'http://localhost:3001';
+// 根据环境变量设置API基础URL
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
 
 // 创建axios实例
 const axiosInstance = axios.create({

@@ -3,7 +3,7 @@ import { Card, Form, Input, Button, Space, message, Modal, List, Tag, Divider, T
 import { PlusOutlined, UserAddOutlined, HomeOutlined, TeamOutlined, KeyOutlined, CopyOutlined } from '@ant-design/icons';
 import { useFamilies } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
-import { FamilyMember, User } from '../types';
+import { FamilyMember } from '../types';
 
 const { Title, Text } = Typography;
 
@@ -17,9 +17,7 @@ const FamilyManager: React.FC = () => {
     invitationCodeError,
     createFamily,
     joinFamily,
-    leaveFamily,
-    refreshCurrentFamily,
-    refreshFamilyMembers
+    leaveFamily
   } = useFamilies();
   // 判断用户是否已加入家庭
   const isInFamily = !!currentFamily;
@@ -51,7 +49,7 @@ const FamilyManager: React.FC = () => {
   // 创建家庭
   const handleCreateFamily = async (values: any) => {
     try {
-      const result = await createFamily(values);
+      await createFamily(values);
       message.success('家庭创建成功！');
       setCreateModalVisible(false);
       createForm.resetFields();
@@ -64,7 +62,7 @@ const FamilyManager: React.FC = () => {
   // 加入家庭
   const handleJoinFamily = async (values: any) => {
     try {
-      const result = await joinFamily(values);
+      await joinFamily(values);
       message.success('成功加入家庭！');
       setJoinModalVisible(false);
       joinForm.resetFields();
@@ -98,7 +96,7 @@ const FamilyManager: React.FC = () => {
       content: '退出家庭后，您将无法查看家庭账单，确定要退出吗？',
       onOk: async () => {
         try {
-          const result = await leaveFamily();
+          await leaveFamily();
           message.success('成功退出家庭');
         } catch (error) {
           console.error('退出家庭失败:', error);
