@@ -23,16 +23,20 @@ jobs:
       - name: 检出代码
         uses: actions/checkout@v3
 
-      - name: 设置Node.js环境
+      - name: 设置 Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '24.x'
-          cache: 'pnpm'
+          cache: 'pnpm' # 只启用 pnpm 缓存（不会自动安装 pnpm）
+
+      - name: 安装 pnpm（确保可执行）
+        run: npm install -g pnpm
+        # 可选：显示 pnpm 版本，验证安装成功
+      - name: 验证 pnpm
+        run: pnpm -v
 
       - name: 安装依赖
-        run: |
-          npm install -g pnpm
-          pnpm install
+        run: pnpm install
 
       - name: 构建项目
         run: pnpm build
@@ -49,7 +53,7 @@ jobs:
           source: 'dist/*'
           target: '/var/www/html/family-finance-tracker'
 
-      - name: 重启Nginx
+      - name: 重启 Nginx
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SERVER_HOST }}
