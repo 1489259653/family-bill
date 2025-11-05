@@ -9,6 +9,12 @@ on:
       - 'tsconfig.json'
       - 'vite.config.ts'
       - 'index.html'
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: '手动触发的原因'
+        required: false
+        default: '手动部署'
 
 jobs:
   build-and-deploy:
