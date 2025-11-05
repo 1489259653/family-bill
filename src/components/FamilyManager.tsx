@@ -31,7 +31,6 @@ const FamilyManager: React.FC = () => {
   
   // 判断用户是否已加入家庭
   const isInFamily = !!currentFamily;
-  console.log('currentFamily', currentFamily)
   const [createModalVisible, setCreateModalVisible] = useState(false);
   const [joinModalVisible, setJoinModalVisible] = useState(false);
   const [inviteModalVisible, setInviteModalVisible] = useState(false);
@@ -84,7 +83,6 @@ const FamilyManager: React.FC = () => {
     if (invitationCodeError) {
         return message.error('获取邀请码出错');
       }
-      console.log(invitationCode)
       if (invitationCode) {
         setInviteModalVisible(true);
     }
