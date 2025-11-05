@@ -1,0 +1,71 @@
+name: Backend CI/CD
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'backend/**'
+      - 'docker-compose.yml'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v3
+
+      - name: 设置Node.js环境
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+          cache: 'npm'
+
+      - name: 安装依赖
+        working-directory: ./backend
+        run: npm install
+
+      - name: 构建项目
+        working-directory: ./backend
+        run: npm run build
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          NODE_ENV: production
+
+      - name: 部署到服务器
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          source: |
+            backend/dist/
+            backend/package.json
+            backend/package-lock.json
+            backend/.env
+          target: '/home/deploy/family-finance-tracker/backend'
+
+      - name: 启动应用
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            # 进入项目目录
+            cd /home/deploy/family-finance-tracker/backend
+            
+            # 安装生产依赖
+            npm install --only=production
+            
+            # 使用pm2启动或重启应用
+            if ! pm2 list | grep -q 'family-finance-backend'; then
+              pm2 start dist/main.js --name family-finance-backend
+            else
+              pm2 restart family-finance-backend
+            fi
+            
+            # 保存pm2进程配置，以便服务器重启后自动启动
+            pm2 save
+            
+            echo "后端部署成功！"
