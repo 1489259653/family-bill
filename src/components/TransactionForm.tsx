@@ -22,7 +22,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onAddTransaction }) =
   
   const { currentFamily, familyMembers } = useFamilies();
   const { logout } = useAuth();
-  const isInFamily = !!currentFamily?.data;
+  const isInFamily = !!currentFamily;
 
   const handleSubmit = async (values: any) => {
     // 确保payerId在家庭账单模式下有值

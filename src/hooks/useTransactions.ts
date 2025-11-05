@@ -2,15 +2,18 @@ import useSWR from 'swr';
 import { useState } from 'react';
 import { fetcher, CreateTransactionData, buildUrlWithParams } from '../services/api';
 
+// 交易汇总数据类型
+export interface TransactionSummary {
+  income: string;
+  expense: string;
+  balance: string;
+}
+
 // 默认汇总数据，避免undefined错误
-const defaultSummary = {
-  totalIncome: 0,
-  totalExpense: 0,
-  balance: 0,
-  personalIncome: 0,
-  personalExpense: 0,
-  familyIncome: 0,
-  familyExpense: 0
+const defaultSummary: TransactionSummary = {
+  income: "0",
+  expense: "0",
+  balance: "0"
 };
 
 // Transactions相关hooks
@@ -48,15 +51,15 @@ export const useTransactions = (billType?: 'all' | 'personal' | 'family') => {
   } = useSWR(getTransactionsUrl(), fetcher<any[]>);
 
   // 获取交易汇总
+  // {income: "0", expense: "22.5", balance: "-22.5"}
   const { 
     data: summaryData, 
     error: summaryError, 
     mutate: mutateSummary 
-  } = useSWR('/transactions/summary', fetcher<any>);
+  } = useSWR<TransactionSummary>('/transactions/summary', fetcher);
 
   // 使用默认值确保summary不为undefined
   const summary = summaryData || defaultSummary;
-
   // 创建交易（重命名为addTransaction以匹配App.tsx中的使用）
   const addTransaction = async (data: CreateTransactionData) => {
     // Convert Date object to string in YYYY-MM-DD format for API

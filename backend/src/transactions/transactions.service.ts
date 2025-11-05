@@ -5,6 +5,7 @@ import { Transaction } from './entities/transaction.entity';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { FamilyMember } from '../families/entities/family-member.entity';
+import Decimal from 'decimal.js';
 
 @Injectable()
 export class TransactionsService {
@@ -136,18 +137,21 @@ export class TransactionsService {
     await this.transactionRepository.remove(transaction);
   }
 
-  async getSummary(userId: number): Promise<{ income: number; expense: number; balance: number }> {
+  async getSummary(userId: number): Promise<{ income: string; expense: string; balance: string }> {
     const transactions = await this.findAll(userId);
     
+    // 使用Decimal.js进行高精度计算
     const income = transactions
       .filter(t => t.type === 'income')
-      .reduce((sum, t) => sum + t.amount, 0);
+      .reduce((sum, t) => new Decimal(sum).plus(new Decimal(t.amount.toString())), new Decimal(0))
+      .toString();
     
     const expense = transactions
       .filter(t => t.type === 'expense')
-      .reduce((sum, t) => sum + t.amount, 0);
+      .reduce((sum, t) => new Decimal(sum).plus(new Decimal(t.amount.toString())), new Decimal(0))
+      .toString();
     
-    const balance = income - expense;
+    const balance = new Decimal(income).minus(new Decimal(expense)).toString();
     
     return { income, expense, balance };
   }

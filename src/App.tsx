@@ -51,13 +51,9 @@ const Dashboard: React.FC = () => {
           <FamilyManager />
           
           <SummaryCards 
-            totalIncome={summary.totalIncome}
-            totalExpense={summary.totalExpense}
+            totalIncome={summary.income}
+            totalExpense={summary.expense}
             balance={summary.balance}
-            personalIncome={summary.personalIncome}
-            personalExpense={summary.personalExpense}
-            familyIncome={summary.familyIncome}
-            familyExpense={summary.familyExpense}
           />
           <div className='mt-14'>
             <TransactionForm onAddTransaction={addTransaction} />

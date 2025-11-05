@@ -6,13 +6,13 @@ const { Panel } = Collapse;
 const { Text } = Typography;
 
 interface SummaryCardsProps {
-  totalIncome: number;
-  totalExpense: number;
-  balance: number;
-  personalIncome?: number;
-  personalExpense?: number;
-  familyIncome?: number;
-  familyExpense?: number;
+  totalIncome: string;
+  totalExpense: string;
+  balance: string;
+  personalIncome?: string;
+  personalExpense?: string;
+  familyIncome?: string;
+  familyExpense?: string;
 }
 
 const SummaryCards: React.FC<SummaryCardsProps> = ({ 
@@ -25,11 +25,11 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({
   familyExpense = 0
 }) => {
   // 计算个人和家庭的余额
-  const personalBalance = personalIncome - personalExpense;
-  const familyBalance = familyIncome - familyExpense;
+  const personalBalance = Number.parseFloat(personalIncome as string) - Number.parseFloat(personalExpense as string);
+  const familyBalance = Number.parseFloat(familyIncome as string) - Number.parseFloat(familyExpense as string);
   
   // 判断是否有家庭账单数据
-  const hasFamilyData = familyIncome > 0 || familyExpense > 0;
+  const hasFamilyData = Number.parseFloat(familyIncome as string) > 0 || Number.parseFloat(familyExpense as string) > 0;
 
   return (
     <div>
@@ -65,7 +65,7 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({
               title="结余"
               value={balance}
               precision={2}
-              valueStyle={{ color: balance >= 0 ? '#3f8600' : '#cf1322' }}
+              valueStyle={{ color: Number.parseFloat(balance as string) >= 0 ? '#3f8600' : '#cf1322' }}
               prefix={<DollarOutlined />}
               suffix="¥"
             />

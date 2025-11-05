@@ -81,7 +81,7 @@ const FamilyManager: React.FC = () => {
   // 获取邀请码
   const handleGetInvitationCode = () => {
     if (invitationCodeError) {
-        return message.error('获取邀请码出错');
+        return message.error(`获取邀请码失败：${invitationCodeError?.message}`);
       }
       if (invitationCode) {
         setInviteModalVisible(true);

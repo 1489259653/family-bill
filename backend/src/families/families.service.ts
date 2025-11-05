@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Family } from './entities/family.entity';
@@ -179,7 +179,7 @@ export class FamiliesService {
     });
 
     if (!currentMember) {
-      throw new NotFoundException('只有家庭管理员可以查看邀请码');
+      throw new ForbiddenException('只有家庭管理员可以查看邀请码');
     }
 
     return currentMember.family.invitationCode;
