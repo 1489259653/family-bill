@@ -23,7 +23,7 @@ jobs:
       - name: 设置Node.js环境
         uses: actions/setup-node@v3
         with:
-          node-version: '18.x'
+          node-version: '24.x'
           cache: 'npm'
 
       - name: 安装依赖
@@ -37,6 +37,13 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           NODE_ENV: production
+      
+      - name: 验证构建输出
+        run: |
+          echo "检查构建目录结构..."
+          ls -la backend/ || echo "backend目录不存在"
+          ls -la backend/dist/ || echo "backend/dist目录不存在"
+          find backend -type f -name "*.js" | head -5 || echo "未找到构建文件"
 
       - name: 部署到服务器
         uses: appleboy/scp-action@master
@@ -44,11 +51,7 @@ jobs:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USERNAME }}
           password: ${{ secrets.SERVER_PASSWORD }}
-          source: |
-            backend/dist/
-            backend/package.json
-            backend/package-lock.json
-            backend/.env
+          source: 'backend/dist/*,backend/package.json,backend/package-lock.json,backend/.env'
           target: '/home/deploy/family-finance-tracker/backend'
 
       - name: 启动应用
