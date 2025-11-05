@@ -2,6 +2,12 @@ import useSWR from 'swr';
 import { fetcher, CreateFamilyData, JoinFamilyData } from '../services/api';
 import { FamilyMembersResponse, FamilyMember } from '../types';
 
+// 通用API响应类型
+export interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+}
+
 // 邀请码返回数据类型
 export interface InvitationCodeResponse {
   success: boolean;
@@ -9,18 +15,17 @@ export interface InvitationCodeResponse {
     invitationCode: string;
   };
 }
+
 export interface ErrorResponse {
   success: boolean;
   statusCode: number;
   message: string;
-  data: {
-    invitationCode: string;
-  };
+  data?: any;
 }
 
 // Families相关hooks
 export const useFamilies = (): {
-  currentFamily: any;
+  currentFamily: any | null;
   currentFamilyError: ErrorResponse | undefined;
   familyMembers: FamilyMember[];
   familyMembersError: ErrorResponse | undefined;
@@ -29,12 +34,16 @@ export const useFamilies = (): {
   createFamily: (data: CreateFamilyData) => Promise<any>;
   joinFamily: (data: JoinFamilyData) => Promise<any>;
   leaveFamily: () => Promise<any>;
+  deleteFamily: () => Promise<any>;
   refreshCurrentFamily: (data?: any) => Promise<any>;
   refreshFamilyMembers: (data?: any) => Promise<any>;
 } => {
   // 获取当前家庭信息
-  const { data: currentFamily, error: currentFamilyError, mutate: mutateCurrentFamily } = 
-    useSWR('/families/current', fetcher<any>);
+  const { data: familyResponse, error: currentFamilyError, mutate: mutateCurrentFamily } = 
+    useSWR<ApiResponse<any>>('/families/current', fetcher);
+    
+  // 直接从响应的data字段获取家庭信息
+  const currentFamily = familyResponse?.data || null;
 
   // 获取家庭成员
   const { data: familyMembersResponse, error: familyMembersError, mutate: mutateFamilyMembers } = 
@@ -68,7 +77,14 @@ export const useFamilies = (): {
   // 退出家庭
   const leaveFamily = async () => {
     const result = await fetcher('/families/leave', 'POST');
-    mutateCurrentFamily(null); // 清除当前家庭信息
+    mutateCurrentFamily({ success: false, data: null }); // 清除当前家庭信息
+    return result;
+  };
+
+  // 删除家庭
+  const deleteFamily = async () => {
+    const result = await fetcher('/families', 'DELETE');
+    mutateCurrentFamily({ success: false, data: null }); // 清除当前家庭信息
     return result;
   };
 
@@ -82,6 +98,7 @@ export const useFamilies = (): {
     createFamily,
     joinFamily,
     leaveFamily,
+    deleteFamily,
     refreshCurrentFamily: mutateCurrentFamily,
     refreshFamilyMembers: mutateFamilyMembers
   };

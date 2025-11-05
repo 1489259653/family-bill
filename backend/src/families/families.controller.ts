@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, UseGuards, Request, Patch } from '@nestjs/common';
+import { Controller, Post, Body, Get, UseGuards, Request, Patch, Delete } from '@nestjs/common';
 import { FamiliesService } from './families.service';
 import { CreateFamilyDto } from './dto/create-family.dto';
 import { JoinFamilyDto } from './dto/join-family.dto';
@@ -226,18 +226,32 @@ export class FamiliesController {
     const family = await this.familiesService.getUserFamily(req.user.userId);
     
     if (!family) {
-      return {
-        success: false,
-        message: '您还没有加入任何家庭',
-      };
+      return { success: false, message: '您还没有加入任何家庭' };
     }
 
     const invitationCode = await this.familiesService.getOrRefreshInvitationCode(family.id, req.user.userId);
-    return {
-      success: true,
-      data: {
-        invitationCode,
-      },
-    };
+    return { success: true, data: { invitationCode } };
+  }
+
+  @ApiOperation({
+    summary: '删除家庭',
+    description: '删除当前用户所在的家庭（仅家庭管理员可用）',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '家庭删除成功',
+    schema: {
+      example: { success: true, message: '家庭删除成功' },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: '您还没有加入任何家庭或没有权限删除家庭',
+  })
+  // 删除家庭
+  @Delete()
+  async deleteFamily(@Request() req) {
+    await this.familiesService.deleteFamily(req.user.userId);
+    return { success: true, message: '家庭删除成功' };
   }
 }

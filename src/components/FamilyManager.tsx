@@ -4,6 +4,11 @@ import { PlusOutlined, UserAddOutlined, HomeOutlined, TeamOutlined, KeyOutlined,
 import { useFamilies } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { FamilyMember } from '../types';
+type Error = {
+  message: string;
+  statusCode: number;
+  error: string;    
+}
 
 const { Title, Text } = Typography;
 
@@ -17,20 +22,22 @@ const FamilyManager: React.FC = () => {
     invitationCodeError,
     createFamily,
     joinFamily,
-    leaveFamily
+    leaveFamily,
+    deleteFamily
   } = useFamilies();
+  
+  // 检查是否有错误
+  const { logout, user } = useAuth();
+  
   // 判断用户是否已加入家庭
   const isInFamily = !!currentFamily;
-  
+  console.log('currentFamily', currentFamily)
   const [createModalVisible, setCreateModalVisible] = useState(false);
   const [joinModalVisible, setJoinModalVisible] = useState(false);
   const [inviteModalVisible, setInviteModalVisible] = useState(false);
   
   const [createForm] = Form.useForm();
   const [joinForm] = Form.useForm();
-
-  // 检查是否有错误
-  const { logout } = useAuth();
 
   React.useEffect(() => {
     if (currentFamilyError || familyMembersError) {
@@ -90,20 +97,63 @@ const FamilyManager: React.FC = () => {
   };
 
   // 退出家庭
-  const handleLeaveFamily = async () => {
-    Modal.confirm({
-      title: '确认退出家庭',
-      content: '退出家庭后，您将无法查看家庭账单，确定要退出吗？',
-      onOk: async () => {
-        try {
-          await leaveFamily();
-          message.success('成功退出家庭');
-        } catch (error) {
-          console.error('退出家庭失败:', error);
-          message.error('退出家庭失败，请重试');
-        }
+  const handleLeaveFamily = () => {
+    try {
+      Modal.confirm({
+        title: '确认退出家庭',
+        content: <p>退出家庭后，您将无法查看家庭账单，确定要退出吗？</p>,
+        okText: '确定',
+        cancelText: '取消',
+        onOk: handleLeaveConfirmation,
+      });
+    } catch (error) {
+      console.error("创建Ant Design模态框失败:", error);
+    }
+  };
+  
+  // 处理退出家庭的确认操作
+  const handleLeaveConfirmation = async () => {
+    try {
+      await leaveFamily();
+      message.success('成功退出家庭');
+    } catch (error) {
+      const errorObj = error as Error;
+      message.error(errorObj?.message || '退出家庭失败，请重试');
+      if(errorObj?.statusCode === 409) {
+         Modal.confirm({
+        title: '确认删除家庭',
+        content: <p>删除家庭将永久移除所有家庭数据，所有成员将自动退出。确定要删除吗？</p>,
+        okText: '确定',
+        cancelText: '取消',
+        onOk: handleDeleteFamily,
+      });
       }
-    });
+    }
+  };
+
+  // 删除家庭
+  const handleDeleteFamily = () => {
+    try {
+      Modal.confirm({
+        title: '确认删除家庭',
+        content: <p>删除家庭将永久移除所有家庭数据，所有成员将自动退出。确定要删除吗？</p>,
+        okText: '确定删除',
+        cancelText: '取消',
+        okButtonProps: { danger: true },
+        onOk: async () => {
+          try {
+            await deleteFamily();
+            message.success('家庭删除成功');
+          } catch (error) {
+            console.error('删除家庭失败:', error);
+            const errorObj = error as any;
+            message.error(errorObj?.message || '删除家庭失败，请重试');
+          }
+        }
+      });
+    } catch (error) {
+      console.error('创建删除确认模态框失败:', error);
+    }
   };
 
   return (
@@ -178,7 +228,7 @@ const FamilyManager: React.FC = () => {
           
           <Divider />
           
-          <Space size="middle" style={{ display: 'flex', justifyContent: 'center' }}>
+          <Space size="middle" style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap' }}>
             <Button 
               icon={<KeyOutlined />}
               onClick={handleGetInvitationCode}
@@ -194,6 +244,19 @@ const FamilyManager: React.FC = () => {
             >
               退出家庭
             </Button>
+            
+            {/* 只有管理员才能看到删除家庭按钮 */}
+              
+            {familyMembers.some(member => member.username === user?.username && member.isAdmin) && (
+              <Button 
+                type="primary"
+                danger
+                onClick={handleDeleteFamily}
+                style={{ minWidth: '150px' }}
+              >
+                删除家庭
+              </Button>
+            )}
           </Space>
         </Space>
       )}

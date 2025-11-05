@@ -113,7 +113,7 @@ export class FamiliesService {
   }
 
   // 获取家庭中的所有成员
-  async getFamilyMembers(familyId: number, userId: number): Promise<User[]> {
+  async getFamilyMembers(familyId: number, userId: number): Promise<any[]> {
     // 验证当前用户是否是家庭的成员
     const currentMember = await this.familyMemberRepository.findOne({
       where: { user: { id: userId }, family: { id: familyId }, isActive: true },
@@ -128,7 +128,12 @@ export class FamiliesService {
       relations: ['user'],
     });
 
-    return members.map(member => member.user);
+    // 返回包含用户信息和家庭角色信息的对象
+    return members.map(member => ({
+      ...member.user,
+      isAdmin: member.role ==FamilyRole.ADMIN,
+      familyMemberId: member.id
+    }));
   }
 
   // 退出家庭
@@ -178,5 +183,33 @@ export class FamiliesService {
     }
 
     return currentMember.family.invitationCode;
+  }
+
+  // 删除家庭
+  async deleteFamily(userId: number): Promise<void> {
+    // 获取用户所在的家庭信息
+    const familyMember = await this.familyMemberRepository.findOne({
+      where: { user: { id: userId }, isActive: true },
+      relations: ['family'],
+    });
+
+    if (!familyMember) {
+      throw new NotFoundException('您还没有加入任何家庭');
+    }
+
+    // 检查用户是否是家庭管理员
+    if (familyMember.role !== FamilyRole.ADMIN) {
+      throw new ConflictException('只有家庭管理员可以删除家庭');
+    }
+
+    const familyId = familyMember.family.id;
+
+    // 先删除所有家庭成员关联记录，避免外键约束错误
+    await this.familyMemberRepository.delete({
+      family: { id: familyId }
+    });
+
+    // 删除家庭
+    await this.familyRepository.delete(familyId);
   }
 }

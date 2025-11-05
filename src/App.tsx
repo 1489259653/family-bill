@@ -12,6 +12,7 @@ import FamilyManager from './components/FamilyManager';
 import LoginForm from './components/LoginForm';
 import ProtectedRoute from './components/ProtectedRoute';
 import { useTransactions } from './hooks/useTransactions';
+import '@ant-design/v5-patch-for-react-19';
 
 const { Content } = Layout;
 
