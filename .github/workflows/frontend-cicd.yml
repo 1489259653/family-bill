@@ -27,11 +27,12 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '24.x'
-          cache: 'pnpm' # 只启用 pnpm 缓存（不会自动安装 pnpm）
-
-      - name: 安装 pnpm（确保可执行）
-        run: npm install -g pnpm
-        # 可选：显示 pnpm 版本，验证安装成功
+          
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: latest
+          
       - name: 验证 pnpm
         run: pnpm -v
 
