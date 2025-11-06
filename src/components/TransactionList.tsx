@@ -1,8 +1,9 @@
-import { DeleteOutlined } from "@ant-design/icons";
+import { DeleteOutlined } from "@ant-design/icons"; // EditOutlined 是未使用的导入
 import { Button, Card, message, Popconfirm, Select, Space, Table, Tag } from "antd";
 import type { ColumnType } from "antd/es/table";
 import dayjs from "dayjs";
-import React, { useMemo, useEffect } from "react";
+import type React from "react";
+import { useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import type { Transaction } from "../types";
 import { CATEGORIES } from "../types";
@@ -23,37 +24,39 @@ const TransactionList: React.FC<TransactionListProps> = ({
   onDeleteTransaction,
 }) => {
   const { logout, theme } = useAuth();
-  
+
   // 按钮保持默认样式，不再根据主题调整
-  
+
   // 使用useEffect监听主题变化，为指定类的单元格设置黑色背景
   useEffect(() => {
     const setActionCellBackground = () => {
       // 获取所有符合指定类的单元格
-      const cells = document.querySelectorAll('.ant-table-cell.ant-table-cell-fix-right.ant-table-cell-fix-right-first');
-      
-      if (theme === 'dark') {
+      const cells = document.querySelectorAll(
+        ".ant-table-cell.ant-table-cell-fix-right.ant-table-cell-fix-right-first"
+      );
+
+      if (theme === "dark") {
         // 深色模式：设置黑色背景
-        cells.forEach(cell => {
-          (cell as HTMLElement).style.backgroundColor = '#000';
+        cells.forEach((cell) => {
+          (cell as HTMLElement).style.backgroundColor = "#000";
         });
       } else {
         // 浅色模式：移除自定义背景色
-        cells.forEach(cell => {
-          (cell as HTMLElement).style.backgroundColor = '';
+        cells.forEach((cell) => {
+          (cell as HTMLElement).style.backgroundColor = "";
         });
       }
     };
-    
+
     // 初始设置
     setActionCellBackground();
-    
+
     // 添加窗口大小改变事件监听器（表格可能会重新渲染）
-    window.addEventListener('resize', setActionCellBackground);
-    
+    window.addEventListener("resize", setActionCellBackground);
+
     // 清理函数
     return () => {
-      window.removeEventListener('resize', setActionCellBackground);
+      window.removeEventListener("resize", setActionCellBackground);
     };
   }, [theme]);
   const handleDelete = async (id: number) => {
@@ -97,11 +100,11 @@ const TransactionList: React.FC<TransactionListProps> = ({
       width: 120,
       render: (category: string, record: Transaction) => {
         if (!category) return "-";
-        
+
         // 根据交易类型获取对应的分类标签
         const categoryList = CATEGORIES[record.type as keyof typeof CATEGORIES] || [];
-        const categoryItem = categoryList.find(item => item.value === category);
-        
+        const categoryItem = categoryList.find((item) => item.value === category);
+
         return categoryItem?.label || category;
       },
     },
@@ -140,7 +143,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
       key: "action",
       width: 100,
       fixed: "right",
-      className: theme === 'dark' ? 'dark-mode-action-column' : '',
+      className: theme === "dark" ? "dark-mode-action-column" : "",
       render: (_: undefined, record: Transaction) => (
         <Popconfirm
           title="确定要删除这条记录吗？"
@@ -156,27 +159,27 @@ const TransactionList: React.FC<TransactionListProps> = ({
 
   return (
     <Card
-        title={`交易记录 (${transactions.length} 条)`}
-        style={{ marginTop: 24 }}
-        extra={
-          <Space>
-            <Select
-              value={filters.billType || "all"}
-              style={{ width: 150 }}
-              onChange={(value) => onUpdateFilters({ billType: value })}
-            >
-              <Select.Option value="all">全部账单</Select.Option>
-              <Select.Option value="personal">个人账单</Select.Option>
-              <Select.Option value="family">家庭账单</Select.Option>
-            </Select>
-            {Object.keys(filters).some((key) => filters[key] !== "all" && filters[key] !== "") && (
-              <Button type="link" onClick={onClearFilters}>
-                清除筛选
-              </Button>
-            )}
-          </Space>
-        }
-      >
+      title={`交易记录 (${transactions.length} 条)`}
+      style={{ marginTop: 24 }}
+      extra={
+        <Space>
+          <Select
+            value={filters.billType || "all"}
+            style={{ width: 150 }}
+            onChange={(value) => onUpdateFilters({ billType: value })}
+          >
+            <Select.Option value="all">全部账单</Select.Option>
+            <Select.Option value="personal">个人账单</Select.Option>
+            <Select.Option value="family">家庭账单</Select.Option>
+          </Select>
+          {Object.keys(filters).some((key) => filters[key] !== "all" && filters[key] !== "") && (
+            <Button type="link" onClick={onClearFilters}>
+              清除筛选
+            </Button>
+          )}
+        </Space>
+      }
+    >
       <Table
         columns={columns}
         dataSource={transactions}
