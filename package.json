@@ -11,7 +11,10 @@
     "serve": "npx serve dist -p 8080",
     "start:frontend": "npm run dev",
     "start:backend": "cd backend && npm run start:dev",
-    "start:all": "concurrently \"npm run start:backend\" \"npm run start:frontend\""
+    "start:all": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
+    "format": "npx @biomejs/biome format --write src/",
+    "lint": "npx @biomejs/biome lint src/",
+    "check": "npx @biomejs/biome check --write src/"
   },
   "dependencies": {
     "@ant-design/icons": "^5.0.0",
@@ -26,6 +29,7 @@
     "swr": "^2.3.6"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.3.4",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^4.0.0",

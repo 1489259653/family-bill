@@ -1,6 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
-import { Transaction } from '../../transactions/entities/transaction.entity';
-import { FamilyMember } from '../../families/entities/family-member.entity';
+import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { FamilyMember } from "../../families/entities/family-member.entity";
+import { Transaction } from "../../transactions/entities/transaction.entity";
 
 @Entity()
 export class User {
@@ -25,9 +25,15 @@ export class User {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @OneToMany(() => Transaction, transaction => transaction.user)
+  @OneToMany(
+    () => Transaction,
+    (transaction) => transaction.user
+  )
   transactions: Transaction[];
 
-  @OneToMany(() => FamilyMember, familyMember => familyMember.user)
+  @OneToMany(
+    () => FamilyMember,
+    (familyMember) => familyMember.user
+  )
   familyMembers: FamilyMember[];
 }

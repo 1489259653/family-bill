@@ -1,24 +1,24 @@
-import { Injectable, NotFoundException, ConflictException, ForbiddenException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Family } from './entities/family.entity';
-import { FamilyMember, FamilyRole } from './entities/family-member.entity';
-import { CreateFamilyDto } from './dto/create-family.dto';
-import { JoinFamilyDto } from './dto/join-family.dto';
-import { User } from '../users/entities/user.entity';
-import * as crypto from 'crypto';
+import { ConflictException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import * as crypto from "crypto";
+import type { Repository } from "typeorm";
+import { User } from "../users/entities/user.entity";
+import type { CreateFamilyDto } from "./dto/create-family.dto";
+import type { JoinFamilyDto } from "./dto/join-family.dto";
+import { Family } from "./entities/family.entity";
+import { FamilyMember, FamilyRole } from "./entities/family-member.entity";
 
 @Injectable()
 export class FamiliesService {
   constructor(
     @InjectRepository(Family) private familyRepository: Repository<Family>,
     @InjectRepository(FamilyMember) private familyMemberRepository: Repository<FamilyMember>,
-    @InjectRepository(User) private userRepository: Repository<User>,
+    @InjectRepository(User) private userRepository: Repository<User>
   ) {}
 
   // 生成唯一的邀请码
   private generateInvitationCode(): string {
-    return crypto.randomBytes(6).toString('hex').toUpperCase();
+    return crypto.randomBytes(6).toString("hex").toUpperCase();
   }
 
   // 创建新家庭
@@ -29,7 +29,7 @@ export class FamiliesService {
     });
 
     if (existingMembership) {
-      throw new ConflictException('您已经加入了一个家庭');
+      throw new ConflictException("您已经加入了一个家庭");
     }
 
     // 创建新家庭
@@ -62,7 +62,7 @@ export class FamiliesService {
     });
 
     if (!family) {
-      throw new NotFoundException('邀请码无效或家庭不存在');
+      throw new NotFoundException("邀请码无效或家庭不存在");
     }
 
     // 检查用户是否已经在这个家庭中
@@ -72,7 +72,7 @@ export class FamiliesService {
 
     if (existingMembership) {
       if (existingMembership.isActive) {
-        throw new ConflictException('您已经是这个家庭的成员');
+        throw new ConflictException("您已经是这个家庭的成员");
       } else {
         // 如果之前退出了家庭，重新激活
         existingMembership.isActive = true;
@@ -87,7 +87,7 @@ export class FamiliesService {
     });
 
     if (otherMembership) {
-      throw new ConflictException('您已经加入了一个家庭，请先退出当前家庭');
+      throw new ConflictException("您已经加入了一个家庭，请先退出当前家庭");
     }
 
     // 创建新的家庭成员关系
@@ -106,7 +106,7 @@ export class FamiliesService {
   async getUserFamily(userId: number): Promise<Family | null> {
     const familyMember = await this.familyMemberRepository.findOne({
       where: { user: { id: userId }, isActive: true },
-      relations: ['family'],
+      relations: ["family"],
     });
 
     return familyMember?.family || null;
@@ -120,19 +120,19 @@ export class FamiliesService {
     });
 
     if (!currentMember) {
-      throw new NotFoundException('您不是这个家庭的成员');
+      throw new NotFoundException("您不是这个家庭的成员");
     }
 
     const members = await this.familyMemberRepository.find({
       where: { family: { id: familyId }, isActive: true },
-      relations: ['user'],
+      relations: ["user"],
     });
 
     // 返回包含用户信息和家庭角色信息的对象
-    return members.map(member => ({
+    return members.map((member) => ({
       ...member.user,
-      isAdmin: member.role ==FamilyRole.ADMIN,
-      familyMemberId: member.id
+      isAdmin: member.role == FamilyRole.ADMIN,
+      familyMemberId: member.id,
     }));
   }
 
@@ -140,24 +140,24 @@ export class FamiliesService {
   async leaveFamily(userId: number): Promise<void> {
     const familyMember = await this.familyMemberRepository.findOne({
       where: { user: { id: userId }, isActive: true },
-      relations: ['family', 'family.members'],
+      relations: ["family", "family.members"],
     });
 
     if (!familyMember) {
-      throw new NotFoundException('您还没有加入任何家庭');
+      throw new NotFoundException("您还没有加入任何家庭");
     }
 
     // 检查是否是唯一的管理员
     const adminMembers = await this.familyMemberRepository.count({
-      where: { 
-        family: { id: familyMember.family.id }, 
-        role: FamilyRole.ADMIN, 
-        isActive: true 
+      where: {
+        family: { id: familyMember.family.id },
+        role: FamilyRole.ADMIN,
+        isActive: true,
       },
     });
 
     if (familyMember.role === FamilyRole.ADMIN && adminMembers === 1) {
-      throw new ConflictException('您是家庭的唯一管理员，无法退出家庭。请先转让管理员权限或删除家庭。');
+      throw new ConflictException("您是家庭的唯一管理员，无法退出家庭。请先转让管理员权限或删除家庭。");
     }
 
     // 将成员状态设置为非活跃
@@ -169,17 +169,17 @@ export class FamiliesService {
   async getOrRefreshInvitationCode(familyId: number, userId: number): Promise<string> {
     // 验证当前用户是否是家庭的管理员
     const currentMember = await this.familyMemberRepository.findOne({
-      where: { 
-        user: { id: userId }, 
-        family: { id: familyId }, 
+      where: {
+        user: { id: userId },
+        family: { id: familyId },
         isActive: true,
-        role: FamilyRole.ADMIN
+        role: FamilyRole.ADMIN,
       },
-      relations: ['family'],
+      relations: ["family"],
     });
 
     if (!currentMember) {
-      throw new ForbiddenException('只有家庭管理员可以查看邀请码');
+      throw new ForbiddenException("只有家庭管理员可以查看邀请码");
     }
 
     return currentMember.family.invitationCode;
@@ -190,23 +190,23 @@ export class FamiliesService {
     // 获取用户所在的家庭信息
     const familyMember = await this.familyMemberRepository.findOne({
       where: { user: { id: userId }, isActive: true },
-      relations: ['family'],
+      relations: ["family"],
     });
 
     if (!familyMember) {
-      throw new NotFoundException('您还没有加入任何家庭');
+      throw new NotFoundException("您还没有加入任何家庭");
     }
 
     // 检查用户是否是家庭管理员
     if (familyMember.role !== FamilyRole.ADMIN) {
-      throw new ConflictException('只有家庭管理员可以删除家庭');
+      throw new ConflictException("只有家庭管理员可以删除家庭");
     }
 
     const familyId = familyMember.family.id;
 
     // 先删除所有家庭成员关联记录，避免外键约束错误
     await this.familyMemberRepository.delete({
-      family: { id: familyId }
+      family: { id: familyId },
     });
 
     // 删除家庭

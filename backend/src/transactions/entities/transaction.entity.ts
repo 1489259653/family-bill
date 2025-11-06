@@ -1,6 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne } from 'typeorm';
-import { User } from '../../users/entities/user.entity';
-import { Family } from '../../families/entities/family.entity';
+import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Family } from "../../families/entities/family.entity";
+import { User } from "../../users/entities/user.entity";
 
 @Entity()
 export class Transaction {
@@ -8,9 +8,9 @@ export class Transaction {
   id: number;
 
   @Column()
-  type: 'income' | 'expense';
+  type: "income" | "expense";
 
-  @Column('decimal', { precision: 10, scale: 2 })
+  @Column("decimal", { precision: 10, scale: 2 })
   amount: number;
 
   @Column()
@@ -37,6 +37,9 @@ export class Transaction {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @ManyToOne(() => User, user => user.transactions)
+  @ManyToOne(
+    () => User,
+    (user) => user.transactions
+  )
   user: User;
 }

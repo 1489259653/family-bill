@@ -4,7 +4,9 @@
   "description": "家庭记账本后端API - NestJS + TypeORM",
   "scripts": {
     "build": "nest build",
-    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "format": "npx @biomejs/biome format --write .",
+    "biome:lint": "npx @biomejs/biome lint .",
+    "biome:check": "npx @biomejs/biome check --write .",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
@@ -40,6 +42,7 @@
     "typeorm": "^0.3.0"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.3.4",
     "@nestjs/cli": "^10.0.0",
     "@nestjs/schematics": "^10.0.0",
     "@nestjs/testing": "^10.0.0",

@@ -1,10 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne } from 'typeorm';
-import { User } from '../../users/entities/user.entity';
-import { Family } from './family.entity';
+import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { User } from "../../users/entities/user.entity";
+import { Family } from "./family.entity";
 
 export enum FamilyRole {
-  ADMIN = 'admin',
-  MEMBER = 'member',
+  ADMIN = "admin",
+  MEMBER = "member",
 }
 
 @Entity()
@@ -12,13 +12,19 @@ export class FamilyMember {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => User, user => user.id)
+  @ManyToOne(
+    () => User,
+    (user) => user.id
+  )
   user: User;
 
-  @ManyToOne(() => Family, family => family.members)
+  @ManyToOne(
+    () => Family,
+    (family) => family.members
+  )
   family: Family;
 
-  @Column({ type: 'enum', enum: FamilyRole, default: FamilyRole.MEMBER })
+  @Column({ type: "enum", enum: FamilyRole, default: FamilyRole.MEMBER })
   role: FamilyRole;
 
   @Column({ default: true })

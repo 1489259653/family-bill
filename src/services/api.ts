@@ -1,25 +1,25 @@
-import axios from 'axios';
+import axios from "axios";
 
-import { User } from '../types';
+import type { User } from "../types";
 
 // 根据环境变量设置API基础URL
 // 本地开发环境通过Vite代理访问API，生产环境通过Nginx代理
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api";
 
 // 创建axios实例
 const axiosInstance = axios.create({
   baseURL: API_BASE_URL,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 });
 
 // 请求拦截器 - 自动附加token
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`;
+      config.headers["Authorization"] = `Bearer ${token}`;
     }
     return config;
   },
@@ -38,12 +38,12 @@ axiosInstance.interceptors.response.use(
     // 避免多个并发请求同时触发重定向
     if (error.response?.status === 401) {
       // 检查是否已经在处理重定向
-      if (!window.location.pathname.includes('/login')) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+      if (!window.location.pathname.includes("/login")) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
         // 使用setTimeout避免阻塞当前执行栈
         setTimeout(() => {
-          window.location.href = '/login';
+          window.location.href = "/login";
         }, 0);
       }
     }
@@ -53,14 +53,18 @@ axiosInstance.interceptors.response.use(
 );
 
 // fetcher函数
-export const fetcher = async <T = any>(url: string, method: string = 'GET', data?: any): Promise<T> => {
+export const fetcher = async <T = any>(
+  url: string,
+  method: string = "GET",
+  data?: any
+): Promise<T> => {
   const config: any = {
     method,
     url,
   };
 
-  if (method !== 'GET' && data) {
-    config['data'] = data;
+  if (method !== "GET" && data) {
+    config["data"] = data;
   }
 
   try {
@@ -97,7 +101,7 @@ export interface JoinFamilyData {
 }
 
 export interface CreateTransactionData {
-  type: 'income' | 'expense';
+  type: "income" | "expense";
   category: string;
   amount: number;
   description: string;
@@ -114,9 +118,9 @@ export const buildUrlWithParams = (baseUrl: string, params?: Record<string, stri
 };
 
 // 先导入hooks中的函数
-import { apiUseAuth as importedApiUseAuth } from '../hooks/useAuth';
-import * as familiesHooks from '../hooks/useFamilies';
-import * as transactionsHooks from '../hooks/useTransactions';
+import { apiUseAuth as importedApiUseAuth } from "../hooks/useAuth";
+import * as familiesHooks from "../hooks/useFamilies";
+import * as transactionsHooks from "../hooks/useTransactions";
 
 // 重新导出hooks中的内容
 export const apiUseAuth = importedApiUseAuth;

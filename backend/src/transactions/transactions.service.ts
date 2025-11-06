@@ -1,19 +1,19 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Transaction } from './entities/transaction.entity';
-import { CreateTransactionDto } from './dto/create-transaction.dto';
-import { UpdateTransactionDto } from './dto/update-transaction.dto';
-import { FamilyMember } from '../families/entities/family-member.entity';
-import Decimal from 'decimal.js';
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import Decimal from "decimal.js";
+import type { Repository } from "typeorm";
+import { FamilyMember } from "../families/entities/family-member.entity";
+import type { CreateTransactionDto } from "./dto/create-transaction.dto";
+import type { UpdateTransactionDto } from "./dto/update-transaction.dto";
+import { Transaction } from "./entities/transaction.entity";
 
 @Injectable()
 export class TransactionsService {
   constructor(
-    @InjectRepository(Transaction) 
+    @InjectRepository(Transaction)
     private readonly transactionRepository: Repository<Transaction>,
-    @InjectRepository(FamilyMember) 
-    private readonly familyMemberRepository: Repository<FamilyMember>,
+    @InjectRepository(FamilyMember)
+    private readonly familyMemberRepository: Repository<FamilyMember>
   ) {}
 
   async create(createTransactionDto: CreateTransactionDto, userId: number): Promise<Transaction> {
@@ -25,27 +25,27 @@ export class TransactionsService {
       // 检查用户是否在家庭中
       const familyMember = await this.familyMemberRepository.findOne({
         where: { user: { id: userId }, isActive: true },
-        relations: ['family'],
+        relations: ["family"],
       });
 
       if (!familyMember) {
-        throw new BadRequestException('您还没有加入任何家庭，无法创建家庭账单');
+        throw new BadRequestException("您还没有加入任何家庭，无法创建家庭账单");
       }
 
       family = familyMember.family;
-      
+
       // 如果指定了支付人，确保支付人也是家庭成员
       if (createTransactionDto.payerId) {
         const payerMember = await this.familyMemberRepository.findOne({
-          where: { 
-            user: { id: createTransactionDto.payerId }, 
-            family: { id: family.id }, 
-            isActive: true 
+          where: {
+            user: { id: createTransactionDto.payerId },
+            family: { id: family.id },
+            isActive: true,
           },
         });
 
         if (!payerMember) {
-          throw new BadRequestException('指定的支付人不是家庭成员');
+          throw new BadRequestException("指定的支付人不是家庭成员");
         }
 
         payerId = createTransactionDto.payerId;
@@ -58,7 +58,7 @@ export class TransactionsService {
       family: family,
       payer: { id: payerId },
     });
-    
+
     return await this.transactionRepository.save(transaction);
   }
 
@@ -66,8 +66,8 @@ export class TransactionsService {
     // 构建查询条件
     const query = {
       where: {},
-      relations: ['family', 'payer', 'user'],
-      order: { date: 'DESC' as const },
+      relations: ["family", "payer", "user"],
+      order: { date: "DESC" as const },
     };
 
     // 如果指定了账单类型
@@ -93,15 +93,12 @@ export class TransactionsService {
       // 首先获取用户的家庭
       const familyMember = await this.familyMemberRepository.findOne({
         where: { user: { id: userId }, isActive: true },
-        relations: ['family'],
+        relations: ["family"],
       });
 
       if (familyMember) {
         // 个人账单或家庭账单
-        query.where = [
-          { user: { id: userId }, isFamilyBill: false },
-          { family: { id: familyMember.family.id } },
-        ];
+        query.where = [{ user: { id: userId }, isFamilyBill: false }, { family: { id: familyMember.family.id } }];
       } else {
         // 只有个人账单
         query.where = { user: { id: userId } };
@@ -114,21 +111,21 @@ export class TransactionsService {
   async findOne(id: number, userId: number): Promise<Transaction> {
     const transaction = await this.transactionRepository.findOne({
       where: { id, user: { id: userId } },
-      relations: ['user'],
+      relations: ["user"],
     });
-    
+
     if (!transaction) {
-      throw new NotFoundException('Transaction not found');
+      throw new NotFoundException("Transaction not found");
     }
-    
+
     return transaction;
   }
 
   async update(id: number, updateTransactionDto: UpdateTransactionDto, userId: number): Promise<Transaction> {
     const transaction = await this.findOne(id, userId);
-    
+
     Object.assign(transaction, updateTransactionDto);
-    
+
     return await this.transactionRepository.save(transaction);
   }
 
@@ -139,20 +136,20 @@ export class TransactionsService {
 
   async getSummary(userId: number): Promise<{ income: string; expense: string; balance: string }> {
     const transactions = await this.findAll(userId);
-    
+
     // 使用Decimal.js进行高精度计算
     const income = transactions
-      .filter(t => t.type === 'income')
+      .filter((t) => t.type === "income")
       .reduce((sum, t) => new Decimal(sum).plus(new Decimal(t.amount.toString())), new Decimal(0))
       .toString();
-    
+
     const expense = transactions
-      .filter(t => t.type === 'expense')
+      .filter((t) => t.type === "expense")
       .reduce((sum, t) => new Decimal(sum).plus(new Decimal(t.amount.toString())), new Decimal(0))
       .toString();
-    
+
     const balance = new Decimal(income).minus(new Decimal(expense)).toString();
-    
+
     return { income, expense, balance };
   }
 }
