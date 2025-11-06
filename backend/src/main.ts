@@ -1,6 +1,5 @@
 import { ValidationPipe, Logger } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
-import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { AppModule } from "./app.module";
 
 async function bootstrap() {
@@ -27,25 +26,38 @@ async function bootstrap() {
     })
   );
 
-  // 配置Swagger文档
-  const config = new DocumentBuilder()
-    .setTitle("家庭记账本 API")
-    .setDescription("家庭记账本后端服务API文档")
-    .setVersion("1.0.0")
-    .addBearerAuth(
-      {
-        type: "http",
-        scheme: "bearer",
-        bearerFormat: "JWT",
-        in: "header",
-        name: "Authorization",
-      },
-      "access_token"
-    )
-    .build();
+  // 只在非生产环境下配置Swagger
+  const isProduction = process.env.NODE_ENV === 'production';
+  if (!isProduction) {
+    try {
+      const { DocumentBuilder, SwaggerModule } = await import('@nestjs/swagger');
+      
+      // 配置Swagger文档
+      const config = new DocumentBuilder()
+        .setTitle("家庭记账本 API")
+        .setDescription("家庭记账本后端服务API文档")
+        .setVersion("1.0.0")
+        .addBearerAuth(
+          {
+            type: "http",
+            scheme: "bearer",
+            bearerFormat: "JWT",
+            in: "header",
+            name: "Authorization",
+          },
+          "access_token"
+        )
+        .build();
 
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup("api", app, document);
+      const document = SwaggerModule.createDocument(app, config);
+      SwaggerModule.setup("api", app, document);
+      Logger.log('Swagger文档已启用');
+    } catch (error) {
+      Logger.warn('Swagger模块加载失败，可能是开发依赖未安装');
+    }
+  } else {
+    Logger.log('生产环境：Swagger已禁用');
+  }
 
   const port = process.env.PORT || 3001;
   await app.listen(port);
