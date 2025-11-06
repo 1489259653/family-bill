@@ -3,9 +3,13 @@ import { createContext, type ReactNode, useContext, useEffect, useState } from "
 import { useAuth as apiUseAuth } from "../services/api";
 import type { User } from "../types";
 
+export type ThemeMode = 'light' | 'dark';
+
 interface AuthContextType {
   user: User | null;
   token: string | null;
+  theme: ThemeMode;
+  toggleTheme: () => void;
   login: (usernameOrEmail: string, password: string) => Promise<void>;
   register: (username: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -29,6 +33,7 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
+  const [theme, setTheme] = useState<ThemeMode>('light');
   const [loading, setLoading] = useState(true);
   const { login: authLogin, register: authRegister } = apiUseAuth();
 
@@ -36,6 +41,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // 检查本地存储中是否有用户信息和令牌
     const storedToken = localStorage.getItem("token");
     const storedUser = localStorage.getItem("user");
+    const storedTheme = localStorage.getItem("theme") as ThemeMode | null;
 
     if (storedToken && storedUser) {
       try {
@@ -49,8 +55,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     }
 
+    // 加载主题设置
+    if (storedTheme) {
+      setTheme(storedTheme);
+      document.documentElement.setAttribute('data-theme', storedTheme);
+    }
+
     setLoading(false);
   }, []);
+
+  const toggleTheme = () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+    localStorage.setItem('theme', newTheme);
+    document.documentElement.setAttribute('data-theme', newTheme);
+  };
 
   const login = async (usernameOrEmail: string, password: string) => {
     try {
@@ -99,6 +118,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const value = {
     user,
     token,
+    theme,
+    toggleTheme,
     login,
     register,
     logout,

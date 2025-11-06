@@ -60,12 +60,12 @@ const LoginForm: React.FC = () => {
         justifyContent: "center",
         alignItems: "center",
         minHeight: "100vh",
-        background: "#f5f5dc", // 纸黄色背景
+        background: "var(--bg-primary)",
         backgroundImage: `
-          repeating-linear-gradient(transparent, transparent 50px, rgba(200, 180, 140, 0.1) 50px, rgba(200, 180, 140, 0.1) 51px),
-          repeating-linear-gradient(90deg, transparent, transparent 50px, rgba(200, 180, 140, 0.1) 50px, rgba(200, 180, 140, 0.1) 51px),
-          linear-gradient(to right, rgba(255,255,250,0.3), rgba(255,248,225,0.1))
-        `, // 类纸纹路效果
+          repeating-linear-gradient(transparent, transparent 50px, var(--bg-line-horizontal) 50px, var(--bg-line-horizontal) 51px),
+          repeating-linear-gradient(90deg, transparent, transparent 50px, var(--bg-line-vertical) 50px, var(--bg-line-vertical) 51px),
+          linear-gradient(to right, var(--bg-gradient-start), var(--bg-gradient-end))
+        `,
         backgroundSize: '100% 100%',
       }}
     >

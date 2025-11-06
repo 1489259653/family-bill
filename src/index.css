@@ -2,16 +2,53 @@
 @tailwind components;
 @tailwind utilities;
 
+/* 主题CSS变量定义 */
+:root {
+  /* 浅色主题变量 */
+  --bg-primary: #f5f5dc;
+  --bg-secondary: rgba(255, 255, 255, 0.95);
+  --text-primary: #333;
+  --text-secondary: #666;
+  --border-color: rgba(255, 255, 255, 0.2);
+  --shadow-color: rgba(0,0,0,0.15);
+  --bg-line-horizontal: rgba(200, 180, 140, 0.1);
+  --bg-line-vertical: rgba(200, 180, 140, 0.1);
+  --bg-gradient-start: rgba(255,255,250,0.3);
+  --bg-gradient-end: rgba(255,248,225,0.1);
+  --scrollbar-bg: #f1f1f1;
+  --scrollbar-thumb: #c1c1c1;
+  --scrollbar-thumb-hover: #a8a8a8;
+}
+
+/* 深色主题变量 */
+[data-theme="dark"] {
+  --bg-primary: #1a1a1a;
+  --bg-secondary: rgba(30, 30, 30, 0.95);
+  --text-primary: #f0f0f0;
+  --text-secondary: #b0b0b0;
+  --border-color: rgba(255, 255, 255, 0.1);
+  --shadow-color: rgba(0,0,0,0.5);
+  --bg-line-horizontal: rgba(100, 90, 70, 0.2);
+  --bg-line-vertical: rgba(100, 90, 70, 0.2);
+  --bg-gradient-start: rgba(40,40,40,0.3);
+  --bg-gradient-end: rgba(60,60,60,0.1);
+  --scrollbar-bg: #2a2a2a;
+  --scrollbar-thumb: #555;
+  --scrollbar-thumb-hover: #777;
+}
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   line-height: 1.6;
-  color: #333;
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
 }
 
 #root {
@@ -24,17 +61,17 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: var(--scrollbar-bg);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
+  background: var(--scrollbar-thumb);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+  background: var(--scrollbar-thumb-hover);
 }
 
 /* 响应式设计 */
@@ -46,4 +83,67 @@ body {
   .ant-card {
     margin-bottom: 16px !important;
   }
+}
+
+/* Ant Design 主题适配 */
+[data-theme="dark"] .ant-card {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .ant-btn-default {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .ant-btn-default:hover {
+  background-color: rgba(50, 50, 50, 0.95);
+  border-color: #40a9ff;
+}
+
+[data-theme="dark"] .ant-input,
+[data-theme="dark"] .ant-input-password,
+[data-theme="dark"] .ant-select-selector {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .ant-input::placeholder,
+[data-theme="dark"] .ant-input-password::placeholder {
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .ant-menu {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .ant-menu-item {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .ant-menu-item:hover {
+  background-color: rgba(50, 50, 50, 0.95);
+}
+
+[data-theme="dark"] .ant-table {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .ant-table-thead > tr > th {
+  background-color: rgba(40, 40, 40, 0.95);
+  color: var(--text-primary);
+  border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .ant-table-tbody > tr > td {
+  border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .ant-table-tbody > tr:hover > td {
+  background-color: rgba(50, 50, 50, 0.95);
 }

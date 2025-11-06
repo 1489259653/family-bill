@@ -6,7 +6,8 @@ import {
   UserOutlined,
 } from "@ant-design/icons";
 import { Card, Col, Collapse, Row, Statistic, Typography } from "antd";
-import type React from "react";
+import React, { useMemo } from "react";
+import { useAuth } from "../contexts/AuthContext";
 
 const { Panel } = Collapse;
 const { Text } = Typography;
@@ -30,6 +31,12 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({
   familyIncome = 0,
   familyExpense = 0,
 }) => {
+  const { theme } = useAuth();
+  
+  // 根据主题创建文本样式
+  const textStyle = useMemo(() => ({
+    color: theme === 'dark' ? 'white' : 'black',
+  }), [theme]);
   // 计算个人和家庭的余额
   const personalBalance =
     Number.parseFloat(personalIncome as string) - Number.parseFloat(personalExpense as string);
@@ -47,7 +54,7 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({
         <Col span={24} md={8}>
           <Card>
             <Statistic
-              title="总收入"
+              title={<span style={textStyle}>总收入</span>}
               value={totalIncome}
               precision={2}
               valueStyle={{ color: "#3f8600" }}
@@ -59,7 +66,7 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({
         <Col span={24} md={8}>
           <Card>
             <Statistic
-              title="总支出"
+              title={<span style={textStyle}>总支出</span>}
               value={totalExpense}
               precision={2}
               valueStyle={{ color: "#cf1322" }}
@@ -71,7 +78,7 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({
         <Col span={24} md={8}>
           <Card>
             <Statistic
-              title="结余"
+              title={<span style={textStyle}>结余</span>}
               value={balance}
               precision={2}
               valueStyle={{
@@ -89,15 +96,15 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({
         <Row gutter={[16, 16]} style={{ marginTop: "16px" }}>
           <Col span={24}>
             <Collapse defaultActiveKey={["1"]}>
-              <Panel header="账单分类明细" key="1">
+              <Panel header={<span style={textStyle}>账单分类明细</span>} key="1">
                 <Row gutter={[16, 16]}>
                   {/* 个人账单 */}
                   <Col span={24} md={12}>
-                    <Card title="个人账单" bordered={true}>
+                    <Card title={<span style={textStyle}>个人账单</span>} bordered={true}>
                       <Row gutter={[16, 16]}>
                         <Col span={12}>
                           <Statistic
-                            title="收入"
+                            title={<span style={textStyle}>收入</span>}
                             value={personalIncome}
                             precision={2}
                             valueStyle={{ color: "#3f8600" }}
@@ -107,7 +114,7 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({
                         </Col>
                         <Col span={12}>
                           <Statistic
-                            title="支出"
+                            title={<span style={textStyle}>支出</span>}
                             value={personalExpense}
                             precision={2}
                             valueStyle={{ color: "#cf1322" }}
@@ -116,7 +123,7 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({
                           />
                         </Col>
                         <Col span={24}>
-                          <Text strong>余额: </Text>
+                          <Text strong style={textStyle}>余额: </Text>
                           <Text style={{ color: personalBalance >= 0 ? "#3f8600" : "#cf1322" }}>
                             {personalBalance.toFixed(2)} ¥
                           </Text>
@@ -127,11 +134,11 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({
 
                   {/* 家庭账单 */}
                   <Col span={24} md={12}>
-                    <Card title="家庭账单" bordered={true}>
+                    <Card title={<span style={textStyle}>家庭账单</span>} bordered={true}>
                       <Row gutter={[16, 16]}>
                         <Col span={12}>
                           <Statistic
-                            title="收入"
+                            title={<span style={textStyle}>收入</span>}
                             value={familyIncome}
                             precision={2}
                             valueStyle={{ color: "#3f8600" }}
@@ -141,7 +148,7 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({
                         </Col>
                         <Col span={12}>
                           <Statistic
-                            title="支出"
+                            title={<span style={textStyle}>支出</span>}
                             value={familyExpense}
                             precision={2}
                             valueStyle={{ color: "#cf1322" }}
@@ -150,7 +157,7 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({
                           />
                         </Col>
                         <Col span={24}>
-                          <Text strong>余额: </Text>
+                          <Text strong style={textStyle}>余额: </Text>
                           <Text style={{ color: familyBalance >= 0 ? "#3f8600" : "#cf1322" }}>
                             {familyBalance.toFixed(2)} ¥
                           </Text>

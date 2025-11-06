@@ -2,8 +2,7 @@ import { PlusOutlined } from "@ant-design/icons";
 import { Button, Card, Checkbox, DatePicker, Form, InputNumber, message, Select } from "antd";
 import TextArea from "antd/es/input/TextArea";
 import dayjs from "dayjs";
-import type React from "react";
-import { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { type CreateTransactionData, useFamilies } from "../services/api";
 import { CATEGORIES, type TransactionFormData } from "../types";
@@ -13,6 +12,12 @@ interface TransactionFormProps {
 }
 
 const TransactionForm: React.FC<TransactionFormProps> = ({ onAddTransaction }) => {
+  const { theme } = useAuth();
+  
+  // 文本样式 - 根据主题切换颜色
+  const textStyle = useMemo(() => ({
+    color: theme === 'dark' ? 'white' : 'black',
+  }), [theme]);
   const [form] = Form.useForm();
   const [transactionType, setTransactionType] = useState<"income" | "expense">("income");
   const [currentUser] = useState(() => {
@@ -62,7 +67,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onAddTransaction }) =
   };
 
   return (
-    <Card title="添加交易" style={{ marginBottom: "24px" }}>
+    <Card title={<span style={textStyle}>添加交易</span>} style={{ marginBottom: "24px" }}>
       <Form
         form={form}
         layout="vertical"
@@ -82,7 +87,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onAddTransaction }) =
         >
           <Form.Item
             name="type"
-            label="类型"
+            label={<span style={textStyle}>类型</span>}
             rules={[{ required: true, message: "请选择交易类型" }]}
           >
             <Select onChange={handleTypeChange}>
@@ -93,7 +98,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onAddTransaction }) =
 
           <Form.Item
             name="category"
-            label="分类"
+            label={<span style={textStyle}>分类</span>}
             rules={[{ required: true, message: "请选择分类" }]}
           >
             <Select placeholder="请选择分类">
@@ -107,7 +112,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onAddTransaction }) =
 
           <Form.Item
             name="amount"
-            label="金额 (¥)"
+            label={<span style={textStyle}>金额 (¥)</span>}
             rules={[{ required: true, message: "请输入金额" }]}
           >
             <InputNumber
@@ -119,14 +124,14 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onAddTransaction }) =
             />
           </Form.Item>
 
-          <Form.Item name="date" label="日期" rules={[{ required: true, message: "请选择日期" }]}>
+          <Form.Item name="date" label={<span style={textStyle}>日期</span>} rules={[{ required: true, message: "请选择日期" }]}>
             <DatePicker style={{ width: "100%" }} />
           </Form.Item>
         </div>
 
         {isInFamily && (
           <Form.Item name="isFamilyBill" valuePropName="checked" style={{ marginBottom: "16px" }}>
-            <Checkbox>家庭账单</Checkbox>
+            <Checkbox style={textStyle}>家庭账单</Checkbox>
           </Form.Item>
         )}
 
@@ -141,10 +146,10 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onAddTransaction }) =
             if (isFamilyBill && isInFamily) {
               return (
                 <Form.Item
-                  name="payerId"
-                  label="支付人"
-                  rules={[{ required: true, message: "请选择支付人" }]}
-                >
+                    name="payerId"
+                    label={<span style={textStyle}>支付人</span>}
+                    rules={[{ required: true, message: "请选择支付人" }]}
+                  >
                   <Select placeholder="请选择支付人" defaultValue={currentUser?.id}>
                     {familyMembers?.map((member: any) => (
                       <Select.Option key={member.id} value={member.id}>
@@ -159,10 +164,10 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onAddTransaction }) =
         </Form.Item>
 
         <Form.Item
-          name="description"
-          label="描述"
-          rules={[{ required: true, message: "请输入交易描述" }]}
-        >
+            name="description"
+            label={<span style={textStyle}>描述</span>}
+            rules={[{ required: true, message: "请输入交易描述" }]}
+          >
           <TextArea placeholder="交易说明" />
         </Form.Item>
 
@@ -171,10 +176,10 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onAddTransaction }) =
             type="primary"
             htmlType="submit"
             icon={<PlusOutlined />}
-            style={{ width: "100%" }}
-          >
-            添加交易
-          </Button>
+            style={{ ...textStyle, width: "100%" }}
+            >
+              添加交易
+            </Button>
         </Form.Item>
       </Form>
     </Card>

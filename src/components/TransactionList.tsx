@@ -2,7 +2,7 @@ import { DeleteOutlined } from "@ant-design/icons";
 import { Button, Card, message, Popconfirm, Select, Space, Table, Tag } from "antd";
 import type { ColumnType } from "antd/es/table";
 import dayjs from "dayjs";
-import type React from "react";
+import React, { useMemo } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import type { Transaction } from "../types";
 import { CATEGORIES } from "../types";
@@ -22,7 +22,12 @@ const TransactionList: React.FC<TransactionListProps> = ({
   onClearFilters,
   onDeleteTransaction,
 }) => {
-  const { logout } = useAuth();
+  const { logout, theme } = useAuth();
+  
+  // 删除按钮样式 - 根据主题调整颜色
+  const deleteButtonStyle = useMemo(() => ({
+    color: theme === 'dark' ? '#000' : undefined, // 黑夜模式下显示为黑色
+  }), [theme]);
   const handleDelete = async (id: number) => {
     try {
       await onDeleteTransaction(id);
@@ -114,7 +119,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
           okText="确定"
           cancelText="取消"
         >
-          <Button type="text" danger icon={<DeleteOutlined />} />
+          <Button type="text" danger icon={<DeleteOutlined />} style={deleteButtonStyle} />
         </Popconfirm>
       ),
     },

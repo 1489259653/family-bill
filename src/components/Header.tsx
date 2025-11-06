@@ -1,5 +1,5 @@
-import { FileTextOutlined, HomeOutlined, SettingOutlined, UserOutlined } from "@ant-design/icons";
-import { Avatar, Dropdown, Layout, Menu, Typography } from "antd";
+import { FileTextOutlined, HomeOutlined, SettingOutlined, UserOutlined, SunOutlined, MoonOutlined } from "@ant-design/icons";
+import { Avatar, Button, Dropdown, Layout, Menu, Typography } from "antd";
 import type React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
@@ -8,7 +8,7 @@ const { Header: AntHeader } = Layout;
 const { Title } = Typography;
 
 const Header: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, theme, toggleTheme } = useAuth();
   const location = useLocation();
 
   const userMenu = (
@@ -37,9 +37,9 @@ const Header: React.FC = () => {
   return (
     <AntHeader
       style={{
-        background: "rgba(255, 255, 255, 0.95)",
+        background: "var(--bg-secondary)",
         backdropFilter: "blur(10px)",
-        borderBottom: "1px solid rgba(255, 255, 255, 0.2)",
+        borderBottom: "1px solid var(--border-color)",
         padding: "0 24px",
         display: "flex",
         justifyContent: "space-between",
@@ -49,7 +49,7 @@ const Header: React.FC = () => {
     >
       <div style={{ display: "flex", alignItems: "center" }}>
         <Link to="/" style={{ textDecoration: "none" }}>
-          <Title level={2} style={{ margin: 0, color: "#1890ff" }}>
+          <Title level={2} style={{ margin: 0, color: "var(--text-primary)" }}>
             <HomeOutlined /> 家庭记账本
           </Title>
         </Link>
@@ -61,19 +61,28 @@ const Header: React.FC = () => {
         style={{ background: "transparent", borderBottom: 0 }}
       >
         <Menu.Item key="/" icon={<FileTextOutlined />}>
-          <Link to="/" style={{ color: "#666" }}>
-            账单管理
-          </Link>
+          <Link to="/" style={{ color: "var(--text-secondary)" }}>
+                账单管理
+              </Link>
         </Menu.Item>
       </Menu>
 
       {user && (
-        <Dropdown overlay={userMenu} placement="bottomRight" arrow>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
-            <Avatar icon={<UserOutlined />} />
-            <span style={{ color: "#666" }}>欢迎，{user.username}</span>
-          </div>
-        </Dropdown>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <Button
+            type="text"
+            icon={theme === 'light' ? <MoonOutlined /> : <SunOutlined />}
+            onClick={toggleTheme}
+            style={{ color: "var(--text-secondary)", fontSize: "18px" }}
+            title={theme === 'light' ? '切换到深色模式' : '切换到浅色模式'}
+          />
+          <Dropdown overlay={userMenu} placement="bottomRight" arrow>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
+              <Avatar icon={<UserOutlined />} />
+              <span style={{ color: "var(--text-secondary)" }}>欢迎，{user.username}</span>
+            </div>
+          </Dropdown>
+        </div>
       )}
     </AntHeader>
   );

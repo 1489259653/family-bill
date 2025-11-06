@@ -19,7 +19,7 @@ import {
   Tag,
   Typography,
 } from "antd";
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useFamilies } from "../services/api";
 import type { FamilyMember } from "../types";
@@ -33,6 +33,12 @@ type Error = {
 const { Title, Text } = Typography;
 
 const FamilyManager: React.FC = () => {
+  const { theme } = useAuth();
+  
+  // 文本样式 - 根据主题切换颜色
+  const textStyle = useMemo(() => ({
+    color: theme === 'dark' ? 'white' : 'black',
+  }), [theme]);
   const {
     currentFamily,
     currentFamilyError,
@@ -118,8 +124,8 @@ const FamilyManager: React.FC = () => {
   const handleLeaveFamily = () => {
     try {
       Modal.confirm({
-        title: "确认退出家庭",
-        content: <p>退出家庭后，您将无法查看家庭账单，确定要退出吗？</p>,
+        title: <Text style={textStyle}>确认退出家庭</Text>,
+        content: <p style={textStyle}>退出家庭后，您将无法查看家庭账单，确定要退出吗？</p>,
         okText: "确定",
         cancelText: "取消",
         onOk: handleLeaveConfirmation,
@@ -139,8 +145,8 @@ const FamilyManager: React.FC = () => {
       message.error(errorObj?.message || "退出家庭失败，请重试");
       if (errorObj?.statusCode === 409) {
         Modal.confirm({
-          title: "确认删除家庭",
-          content: <p>删除家庭将永久移除所有家庭数据，所有成员将自动退出。确定要删除吗？</p>,
+          title: <Text style={textStyle}>确认删除家庭</Text>,
+          content: <p style={textStyle}>删除家庭将永久移除所有家庭数据，所有成员将自动退出。确定要删除吗？</p>,
           okText: "确定",
           cancelText: "取消",
           onOk: handleDeleteFamily,
@@ -153,8 +159,8 @@ const FamilyManager: React.FC = () => {
   const handleDeleteFamily = () => {
     try {
       Modal.confirm({
-        title: "确认删除家庭",
-        content: <p>删除家庭将永久移除所有家庭数据，所有成员将自动退出。确定要删除吗？</p>,
+        title: <Text style={textStyle}>确认删除家庭</Text>,
+        content: <p style={textStyle}>删除家庭将永久移除所有家庭数据，所有成员将自动退出。确定要删除吗？</p>,
         okText: "确定删除",
         cancelText: "取消",
         okButtonProps: { danger: true },
@@ -178,8 +184,8 @@ const FamilyManager: React.FC = () => {
     <Card
       title={
         <Space align="center">
-          <HomeOutlined /> 家庭管理
-        </Space>
+              <HomeOutlined /> <Text style={textStyle}>家庭管理</Text>
+            </Space>
       }
       style={{ marginBottom: "24px" }}
     >
@@ -191,6 +197,7 @@ const FamilyManager: React.FC = () => {
               display: "block",
               textAlign: "center",
               marginBottom: "20px",
+              ...textStyle,
             }}
           >
             您还没有加入任何家庭，创建或加入一个家庭开始家庭记账吧！
@@ -218,8 +225,8 @@ const FamilyManager: React.FC = () => {
       ) : (
         <Space direction="vertical" size="large" style={{ width: "100%" }}>
           <div>
-            <Title level={4}>{currentFamily.name}</Title>
-            {currentFamily.description && <Text type="secondary">{currentFamily.description}</Text>}
+            <Title level={4} style={textStyle}>{currentFamily.name}</Title>
+            {currentFamily.description && <Text type="secondary" style={textStyle}>{currentFamily.description}</Text>}
           </div>
 
           <Divider />
@@ -227,7 +234,7 @@ const FamilyManager: React.FC = () => {
           <div>
             <Space align="center" style={{ marginBottom: "16px" }}>
               <TeamOutlined />
-              <span style={{ fontSize: "16px", fontWeight: "bold" }}>
+              <span style={{ fontSize: "16px", fontWeight: "bold", ...textStyle }}>
                 家庭成员 ({familyMembers.length}人)
               </span>
             </Space>
@@ -236,7 +243,10 @@ const FamilyManager: React.FC = () => {
               dataSource={familyMembers}
               renderItem={(member: FamilyMember) => (
                 <List.Item actions={[member.isAdmin && <Tag color="green">管理员</Tag>]}>
-                  <List.Item.Meta title={member.username} description={member.email} />
+                  <List.Item.Meta 
+                    title={<Text style={textStyle}>{member.username}</Text>} 
+                    description={<Text style={textStyle}>{member.email}</Text>} 
+                  />
                 </List.Item>
               )}
             />
@@ -280,7 +290,7 @@ const FamilyManager: React.FC = () => {
 
       {/* 创建家庭模态框 */}
       <Modal
-        title="创建新家庭"
+        title={<Text style={textStyle}>创建新家庭</Text>}
         open={createModalVisible}
         onCancel={() => setCreateModalVisible(false)}
         footer={null}
@@ -308,7 +318,7 @@ const FamilyManager: React.FC = () => {
 
       {/* 加入家庭模态框 */}
       <Modal
-        title="加入家庭"
+        title={<Text style={textStyle}>加入家庭</Text>}
         open={joinModalVisible}
         onCancel={() => setJoinModalVisible(false)}
         footer={null}
@@ -332,13 +342,13 @@ const FamilyManager: React.FC = () => {
 
       {/* 邀请码模态框 */}
       <Modal
-        title="家庭邀请码"
+        title={<Text style={textStyle}>家庭邀请码</Text>}
         open={inviteModalVisible}
         onCancel={() => setInviteModalVisible(false)}
         footer={null}
       >
         <Space direction="vertical" size="middle" style={{ width: "100%" }}>
-          <Text type="secondary">请将以下邀请码分享给您的家人：</Text>
+          <Text type="secondary" style={textStyle}>请将以下邀请码分享给您的家人：</Text>
 
           <div
             style={{
@@ -351,7 +361,7 @@ const FamilyManager: React.FC = () => {
               fontWeight: "bold",
             }}
           >
-            {invitationCode}
+            <Text style={textStyle}>{invitationCode}</Text>
           </div>
 
           <Button
@@ -363,7 +373,7 @@ const FamilyManager: React.FC = () => {
             复制邀请码
           </Button>
 
-          <Text type="secondary" style={{ fontSize: "12px" }}>
+          <Text type="secondary" style={{ fontSize: "12px", ...textStyle }}>
             邀请码有效期为24小时，请尽快分享给您的家人。
           </Text>
         </Space>
