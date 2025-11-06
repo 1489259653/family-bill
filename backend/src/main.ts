@@ -1,6 +1,8 @@
 import { ValidationPipe, Logger } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
+import { ConfigService } from "@nestjs/config";
 import { AppModule } from "./app.module";
+import { initSwagger } from "./swagger";
 
 async function bootstrap() {
   // 创建应用实例并设置日志级别
@@ -26,37 +28,14 @@ async function bootstrap() {
     })
   );
 
-  // 只在非生产环境下配置Swagger
-  const isProduction = process.env.NODE_ENV === 'production';
-  if (!isProduction) {
-    try {
-      const { DocumentBuilder, SwaggerModule } = await import('@nestjs/swagger');
-      
-      // 配置Swagger文档
-      const config = new DocumentBuilder()
-        .setTitle("家庭记账本 API")
-        .setDescription("家庭记账本后端服务API文档")
-        .setVersion("1.0.0")
-        .addBearerAuth(
-          {
-            type: "http",
-            scheme: "bearer",
-            bearerFormat: "JWT",
-            in: "header",
-            name: "Authorization",
-          },
-          "access_token"
-        )
-        .build();
-
-      const document = SwaggerModule.createDocument(app, config);
-      SwaggerModule.setup("api", app, document);
-      Logger.log('Swagger文档已启用');
-    } catch (error) {
-      Logger.warn('Swagger模块加载失败，可能是开发依赖未安装');
-    }
-  } else {
-    Logger.log('生产环境：Swagger已禁用');
+  // 获取配置服务
+  const configService = app.get(ConfigService);
+  
+  // 初始化Swagger文档（通过环境变量控制启用）
+  try {
+    initSwagger({ app, configService });
+  } catch (error) {
+    Logger.warn('Swagger模块初始化失败：可能是开发依赖未安装');
   }
 
   const port = process.env.PORT || 3001;
