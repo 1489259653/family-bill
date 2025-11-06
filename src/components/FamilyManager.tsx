@@ -50,6 +50,7 @@ const FamilyManager: React.FC = () => {
     joinFamily,
     leaveFamily,
     deleteFamily,
+    refreshFamilyMembers,
   } = useFamilies();
 
   // 检查是否有错误
@@ -64,6 +65,11 @@ const FamilyManager: React.FC = () => {
   const [createForm] = Form.useForm();
   const [joinForm] = Form.useForm();
 
+  React.useEffect(()=>{
+    if(currentFamily){
+      refreshFamilyMembers();
+    }
+  },[refreshFamilyMembers,currentFamily])
   React.useEffect(() => {
     if (currentFamilyError || familyMembersError) {
       console.error("获取家庭信息失败:", currentFamilyError || familyMembersError);

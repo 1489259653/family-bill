@@ -2,7 +2,7 @@ import { DeleteOutlined } from "@ant-design/icons";
 import { Button, Card, message, Popconfirm, Select, Space, Table, Tag } from "antd";
 import type { ColumnType } from "antd/es/table";
 import dayjs from "dayjs";
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import type { Transaction } from "../types";
 import { CATEGORIES } from "../types";
@@ -24,10 +24,38 @@ const TransactionList: React.FC<TransactionListProps> = ({
 }) => {
   const { logout, theme } = useAuth();
   
-  // 删除按钮样式 - 根据主题调整颜色
-  const deleteButtonStyle = useMemo(() => ({
-    color: theme === 'dark' ? '#000' : undefined, // 黑夜模式下显示为黑色
-  }), [theme]);
+  // 按钮保持默认样式，不再根据主题调整
+  
+  // 使用useEffect监听主题变化，为指定类的单元格设置黑色背景
+  useEffect(() => {
+    const setActionCellBackground = () => {
+      // 获取所有符合指定类的单元格
+      const cells = document.querySelectorAll('.ant-table-cell.ant-table-cell-fix-right.ant-table-cell-fix-right-first');
+      
+      if (theme === 'dark') {
+        // 深色模式：设置黑色背景
+        cells.forEach(cell => {
+          (cell as HTMLElement).style.backgroundColor = '#000';
+        });
+      } else {
+        // 浅色模式：移除自定义背景色
+        cells.forEach(cell => {
+          (cell as HTMLElement).style.backgroundColor = '';
+        });
+      }
+    };
+    
+    // 初始设置
+    setActionCellBackground();
+    
+    // 添加窗口大小改变事件监听器（表格可能会重新渲染）
+    window.addEventListener('resize', setActionCellBackground);
+    
+    // 清理函数
+    return () => {
+      window.removeEventListener('resize', setActionCellBackground);
+    };
+  }, [theme]);
   const handleDelete = async (id: number) => {
     try {
       await onDeleteTransaction(id);
@@ -112,6 +140,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
       key: "action",
       width: 100,
       fixed: "right",
+      className: theme === 'dark' ? 'dark-mode-action-column' : '',
       render: (_: undefined, record: Transaction) => (
         <Popconfirm
           title="确定要删除这条记录吗？"
@@ -119,7 +148,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
           okText="确定"
           cancelText="取消"
         >
-          <Button type="text" danger icon={<DeleteOutlined />} style={deleteButtonStyle} />
+          <Button type="text" danger icon={<DeleteOutlined />} />
         </Popconfirm>
       ),
     },
@@ -127,27 +156,27 @@ const TransactionList: React.FC<TransactionListProps> = ({
 
   return (
     <Card
-      title={`交易记录 (${transactions.length} 条)`}
-      style={{ marginTop: 24 }}
-      extra={
-        <Space>
-          <Select
-            value={filters.billType || "all"}
-            style={{ width: 150 }}
-            onChange={(value) => onUpdateFilters({ billType: value })}
-          >
-            <Select.Option value="all">全部账单</Select.Option>
-            <Select.Option value="personal">个人账单</Select.Option>
-            <Select.Option value="family">家庭账单</Select.Option>
-          </Select>
-          {Object.keys(filters).some((key) => filters[key] !== "all" && filters[key] !== "") && (
-            <Button type="link" onClick={onClearFilters}>
-              清除筛选
-            </Button>
-          )}
-        </Space>
-      }
-    >
+        title={`交易记录 (${transactions.length} 条)`}
+        style={{ marginTop: 24 }}
+        extra={
+          <Space>
+            <Select
+              value={filters.billType || "all"}
+              style={{ width: 150 }}
+              onChange={(value) => onUpdateFilters({ billType: value })}
+            >
+              <Select.Option value="all">全部账单</Select.Option>
+              <Select.Option value="personal">个人账单</Select.Option>
+              <Select.Option value="family">家庭账单</Select.Option>
+            </Select>
+            {Object.keys(filters).some((key) => filters[key] !== "all" && filters[key] !== "") && (
+              <Button type="link" onClick={onClearFilters}>
+                清除筛选
+              </Button>
+            )}
+          </Space>
+        }
+      >
       <Table
         columns={columns}
         dataSource={transactions}
