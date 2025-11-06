@@ -5,6 +5,7 @@ import dayjs from "dayjs";
 import type React from "react";
 import { useAuth } from "../contexts/AuthContext";
 import type { Transaction } from "../types";
+import { CATEGORIES } from "../types";
 
 interface TransactionListProps {
   transactions: Transaction[];
@@ -61,6 +62,15 @@ const TransactionList: React.FC<TransactionListProps> = ({
       dataIndex: "category",
       key: "category",
       width: 120,
+      render: (category: string, record: Transaction) => {
+        if (!category) return "-";
+        
+        // 根据交易类型获取对应的分类标签
+        const categoryList = CATEGORIES[record.type as keyof typeof CATEGORIES] || [];
+        const categoryItem = categoryList.find(item => item.value === category);
+        
+        return categoryItem?.label || category;
+      },
     },
     {
       title: "描述",
