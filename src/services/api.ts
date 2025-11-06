@@ -76,7 +76,7 @@ export const fetcher = async <T = any>(
 };
 
 export interface LoginData {
-  email: string;
+  usernameOrEmail: string;
   password: string;
 }
 

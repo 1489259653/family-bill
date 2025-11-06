@@ -15,7 +15,7 @@ const LoginForm: React.FC = () => {
   const onLogin = async (values: { username: string; password: string }) => {
     setLoading(true);
     try {
-      // 根据API调整，使用username而不是email登录
+      // 使用username或邮箱登录
       await login(values.username, values.password);
       message.success("登录成功！");
       navigate("/");
@@ -72,7 +72,7 @@ const LoginForm: React.FC = () => {
           <TabPane tab="登录" key="login">
             <Form name="login" onFinish={onLogin} autoComplete="off" layout="vertical">
               <Form.Item name="username" rules={[{ required: true, message: "请输入用户名/邮箱" }]}>
-                <Input prefix={<UserOutlined />} placeholder="用户名" size="large" />
+                <Input prefix={<UserOutlined />} placeholder="用户名/邮箱" size="large" />
               </Form.Item>
 
               <Form.Item

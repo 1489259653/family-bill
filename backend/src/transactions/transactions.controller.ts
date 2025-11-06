@@ -3,7 +3,7 @@ import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse, 
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { CreateTransactionDto } from "./dto/create-transaction.dto";
 import { UpdateTransactionDto } from "./dto/update-transaction.dto";
-import type { TransactionsService } from "./transactions.service";
+import { TransactionsService } from "./transactions.service";
 
 @ApiTags("交易管理")
 @ApiBearerAuth("access_token")

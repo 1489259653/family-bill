@@ -3,7 +3,7 @@ import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from "@nes
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { CreateFamilyDto } from "./dto/create-family.dto";
 import { JoinFamilyDto } from "./dto/join-family.dto";
-import type { FamiliesService } from "./families.service";
+import { FamiliesService } from "./families.service";
 
 @ApiTags("家庭管理")
 @ApiBearerAuth("access_token")
