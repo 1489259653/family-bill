@@ -37,6 +37,10 @@
   --scrollbar-thumb-hover: #777;
 }
 
+[data-theme="dark"] .ant-table-cell.ant-table-cell-fix-right.ant-table-cell-fix-right-first {
+  background-color: #000 !important;
+}
+
 * {
   margin: 0;
   padding: 0;
