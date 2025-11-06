@@ -60,7 +60,13 @@ const LoginForm: React.FC = () => {
         justifyContent: "center",
         alignItems: "center",
         minHeight: "100vh",
-        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+        background: "#f5f5dc", // 纸黄色背景
+        backgroundImage: `
+          repeating-linear-gradient(transparent, transparent 50px, rgba(200, 180, 140, 0.1) 50px, rgba(200, 180, 140, 0.1) 51px),
+          repeating-linear-gradient(90deg, transparent, transparent 50px, rgba(200, 180, 140, 0.1) 50px, rgba(200, 180, 140, 0.1) 51px),
+          linear-gradient(to right, rgba(255,255,250,0.3), rgba(255,248,225,0.1))
+        `, // 类纸纹路效果
+        backgroundSize: '100% 100%',
       }}
     >
       <Card
