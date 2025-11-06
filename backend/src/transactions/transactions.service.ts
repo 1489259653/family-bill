@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import Decimal from "decimal.js";
 import type { Repository } from "typeorm";
@@ -9,6 +9,8 @@ import { Transaction } from "./entities/transaction.entity";
 
 @Injectable()
 export class TransactionsService {
+  private readonly logger = new Logger(TransactionsService.name);
+  
   constructor(
     @InjectRepository(Transaction)
     private readonly transactionRepository: Repository<Transaction>,
@@ -63,6 +65,8 @@ export class TransactionsService {
   }
 
   async findAll(userId: number, isFamilyBill?: boolean): Promise<Transaction[]> {
+    this.logger.debug(`[FIND_ALL] 用户ID: ${userId}, 账单类型: ${isFamilyBill}`);
+    
     // 构建查询条件
     const query = {
       where: {},
@@ -72,19 +76,28 @@ export class TransactionsService {
 
     // 如果指定了账单类型
     if (isFamilyBill !== undefined) {
+      this.logger.debug(`[FIND_ALL] 筛选账单类型: ${isFamilyBill ? '家庭账单' : '个人账单'}`);
+      
       if (isFamilyBill) {
+        this.logger.debug(`[FIND_ALL] 查询用户家庭信息`);
         // 获取用户的家庭
         const familyMember = await this.familyMemberRepository.findOne({
           where: { user: { id: userId }, isActive: true },
+          relations: ["family"],
         });
-
+        
+        this.logger.debug(`[FIND_ALL] 用户家庭信息: ${JSON.stringify(familyMember)}`);
+        
         if (familyMember) {
+          this.logger.debug(`[FIND_ALL] 使用家庭ID: ${familyMember.family?.id} 筛选账单`);
           // 查询用户家庭的所有账单
           query.where = { family: { id: familyMember.family.id } };
         } else {
+          this.logger.debug(`[FIND_ALL] 用户不在任何家庭中，返回空列表`);
           return [];
         }
       } else {
+        this.logger.debug(`[FIND_ALL] 筛选个人账单，用户ID: ${userId}`);
         // 查询用户的个人账单
         query.where = { user: { id: userId }, isFamilyBill: false };
       }
@@ -95,7 +108,6 @@ export class TransactionsService {
         where: { user: { id: userId }, isActive: true },
         relations: ["family"],
       });
-
       if (familyMember) {
         // 个人账单或家庭账单
         query.where = [{ user: { id: userId }, isFamilyBill: false }, { family: { id: familyMember.family.id } }];

@@ -23,16 +23,18 @@ export const useTransactions = (billType?: "all" | "personal" | "family") => {
     search: "",
     category: "",
     dateRange: null,
-    type: "",
+    billType: "",
     isFamilyBill: undefined,
   });
 
   // 构建查询URL
   const getTransactionsUrl = () => {
     const params: Record<string, string> = {};
-    if (billType === "personal") {
+    // 优先使用filters中的billType
+    const actualBillType = filters.billType || billType;
+    if (actualBillType === "personal") {
       params.isFamilyBill = "false";
-    } else if (billType === "family") {
+    } else if (actualBillType === "family") {
       params.isFamilyBill = "true";
     }
     return buildUrlWithParams("/transactions", params);
@@ -102,7 +104,7 @@ export const useTransactions = (billType?: "all" | "personal" | "family") => {
       search: "",
       category: "",
       dateRange: null,
-      type: "",
+      billType: "",
       isFamilyBill: undefined,
     });
   };

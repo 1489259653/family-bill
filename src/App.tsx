@@ -13,6 +13,7 @@ import TransactionList from "./components/TransactionList";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { useTransactions } from "./hooks/useTransactions";
 import "@ant-design/v5-patch-for-react-19";
+import type { Transaction } from "./types";
 
 const { Content } = Layout;
 
@@ -28,7 +29,7 @@ const Dashboard: React.FC = () => {
     clearFilters,
   } = useTransactions();
 
-  const handleImport = (importedTransactions: any[]) => {
+  const handleImport = (importedTransactions: Transaction[]) => {
     const updatedTransactions = [...importedTransactions, ...allTransactions];
     localStorage.setItem("family-finance-transactions", JSON.stringify(updatedTransactions));
     window.location.reload();

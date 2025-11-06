@@ -127,7 +127,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
       extra={
         <Space>
           <Select
-            defaultValue={filters.billType || "all"}
+            value={filters.billType || "all"}
             style={{ width: 150 }}
             onChange={(value) => onUpdateFilters({ billType: value })}
           >

@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { Module, NestModule, MiddlewareConsumer, Logger } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { AuthModule } from "./auth/auth.module";
@@ -10,6 +10,11 @@ import { UsersModule } from "./users/users.module";
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      load: [() => ({
+        nest: {
+          logger: ['error', 'warn', 'log', 'debug', 'verbose'],
+        },
+      })],
     }),
     TypeOrmModule.forRoot({
       type: "mysql",
@@ -26,5 +31,9 @@ import { UsersModule } from "./users/users.module";
     TransactionsModule,
     FamiliesModule,
   ],
-})
-export class AppModule {}
+})export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    // 确保日志级别设置正确
+    Logger.log('应用日志级别已配置：error, warn, log, debug, verbose');
+  }
+}
